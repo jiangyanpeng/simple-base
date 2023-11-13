@@ -1,0 +1,45 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
+PROJECT(simple_base)
+
+SET(CMAKE_CXX_COMPILER "g++")
+SET(CMAKE_BUILD_TYPE "DEBUG")
+SET(CMAKE_CXX_FLAGS "-std=c++11 -march=native -O3")
+SET(CMAKE_COMPILE_WARNING_AS_ERROR ON)
+SET(CMAKE_CXX_FLAGS "${CAMKE_CXX_FLAGS} -std=c++11 -pthread")
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/bin)
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/lib)
+
+####### INCLUDE #######
+INCLUDE_DIRECTORIES(
+    ${PROJECT_SOURCE_DIR}/include
+)
+
+####### SOURCES (Projects) #######
+# INCLUDE_DIRECTORIES(
+#         #${PROJECT_SOURCE_DIR}/develop
+#         ${PROJECT_SOURCE_DIR}/develop/*cpp
+# )
+ADD_SUBDIRECTORY(src)
+
+####### LIBS #######
+# thirdparty
+SET(THIRD_PARTY_LIBS
+    #${OpenCV_LIBS}
+    #${EIGEN3_LIBS}
+)
+
+# INTERNAL LIBS #
+SET(SIMPLE_BASE_LIBS simple_base)
+
+####### INSTALL PYTHON #######
+INSTALL(DIRECTORY  
+    ${PROJECT_SOURCE_DIR}/python DESTINATION ${PROJECT_SOURCE_DIR}/build)
+
+####### UINT TEST   ##########
+# ENABLE_TESTING()
+SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
+# SET(GTEST_LIB gtest gtest_main)
+# include(googletest)
+ADD_SUBDIRECTORY(test)
+# ADD_SUBDIRECTORY(third_party/googletest)
+# INCLUDE_DIRECTORIES(third_party/googletest/include)
