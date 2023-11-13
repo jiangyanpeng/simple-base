@@ -1,6 +1,37 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 PROJECT(simple_base)
 
+######## COMPILE #######
+# SET(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+
+# OPTION(BUILD_USE_ENPU          "Use ENPU"                   OFF)
+# OPTION(BUILD_USE_STB           "Use STB"                    OFF)
+# OPTION(BUILD_USE_AVX           "Use AVX"                    OFF)
+# OPTION(BUILD_ENABLE_BENCHMARK  "Enable Benchmark"           OFF)
+
+# IF(BUILD_USE_ENPU MATCHES ON)
+#     ADD_DEFINITIONS(-DUSE_ENPU)
+#     SET(USE_ENPU_MACRO "#define USE_ENPU\n")
+#     INCLUDE(cmake/enpu_config.cmake)
+#     MESSAGE(STATUS "Using ENPU_VERSION: ${ENPU_VERSION}")
+#     MESSAGE(STATUS "Using FORCE_32BIT_BUILD: ${FORCE_32BIT_BUILD}")
+# ELSE()
+#     INCLUDE(cmake/x86_config.cmake)
+#     MESSAGE(STATUS "Using C: ${CMAKE_C_COMPILER_VERSION}")
+# ENDIF()
+
+# IF(BUILD_USE_STB MATCHES ON)
+#     ADD_DEFINITIONS(-DSTB_IMAGE_IMPLEMENTATION)
+# 	ADD_DEFINITIONS(-DSTB_IMAGE_WRITE_IMPLEMENTATION)
+# ENDIF()
+######## CONFIG OPTION ######
+# SET(VERSION "0.0.1")
+# CONFIGURE_FILE(
+#     "${PROJECT_SOURCE_DIR}/src/config.h.in"
+#     "${PROJECT_BINARY_DIR}/config.h"
+# )
+# INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
+
 SET(CMAKE_CXX_COMPILER "g++")
 SET(CMAKE_BUILD_TYPE "DEBUG")
 SET(CMAKE_CXX_FLAGS "-std=c++11 -march=native -O3")
@@ -13,13 +44,11 @@ SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/lib)
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/include
 )
+# INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
 
 ####### SOURCES (Projects) #######
-# INCLUDE_DIRECTORIES(
-#         #${PROJECT_SOURCE_DIR}/develop
-#         ${PROJECT_SOURCE_DIR}/develop/*cpp
-# )
-ADD_SUBDIRECTORY(src)
+FILE(GLOB_RECURSE base_src ${PROJECT_SOURCE_DIR}/src/*.cc)
+
 
 ####### LIBS #######
 # thirdparty
@@ -31,15 +60,28 @@ SET(THIRD_PARTY_LIBS
 # INTERNAL LIBS #
 SET(SIMPLE_BASE_LIBS simple_base)
 
+####### build static lib #######
+ADD_LIBRARY(${SIMPLE_BASE_LIBS} STATIC ${base_src})
+
+####### build shared lib #######
+# ADD_LIBRARY(${SIMPLE_BASE_LIBS} SHARED ${base_src})
+
 ####### INSTALL PYTHON #######
-INSTALL(DIRECTORY  
-    ${PROJECT_SOURCE_DIR}/python DESTINATION ${PROJECT_SOURCE_DIR}/build)
+# INSTALL(DIRECTORY  
+#     ${PROJECT_SOURCE_DIR}/python DESTINATION ${PROJECT_SOURCE_DIR}/build)
 
 ####### UINT TEST   ##########
 # ENABLE_TESTING()
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
 # SET(GTEST_LIB gtest gtest_main)
 # include(googletest)
-ADD_SUBDIRECTORY(test)
+
 # ADD_SUBDIRECTORY(third_party/googletest)
 # INCLUDE_DIRECTORIES(third_party/googletest/include)
+
+############ build sample #########
+ADD_SUBDIRECTORY(samples)
+
+IF(BUILD_USE_STB MATCHES ON)
+    ADD_SUBDIRECTORY(benchmark)
+ENDIF()

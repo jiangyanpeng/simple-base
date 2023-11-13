@@ -1,1 +1,7 @@
+.vscode/*
+target/*
 build/*
+install/*
+cmake-build-debug/*
+.idea/*
+deps/*

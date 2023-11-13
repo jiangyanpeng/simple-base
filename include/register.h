@@ -7,10 +7,10 @@
 #include <unordered_map>
 #include <vector>
 
-template <typename Base> 
+template <typename Base>
 class RegisterBase {
 public:
-    using Creator = std::function<std::shared_ptr<Base>()>;
+    using Creator     = std::function<std::shared_ptr<Base>()>;
     using RegisterMap = std::unordered_map<std::string, Creator>;
 
     static RegisterBase& GetInstance() {
@@ -28,7 +28,7 @@ public:
 
     std::shared_ptr<Base> Create(const std::string& key) {
         if (!creator_map_.count(key)) {
-            // SDK_LOG_ERROR("Register  type {} not register", key);
+            // SIMPLE_LOG_ERROR("Register  type {} not register", key);
             return nullptr;
         }
         return creator_map_[key]();
@@ -38,10 +38,10 @@ private:
     RegisterMap creator_map_;
 };
 
-template <typename Base> 
+template <typename Base>
 class CommonRegister {
 public:
-    using Creator = std::function< std::shared_ptr<Base>()>;
+    using Creator = std::function<std::shared_ptr<Base>()>;
     CommonRegister(const std::string& type, Creator creator) {
         RegisterBase<Base>::GetInstance().Register(type, creator);
     }

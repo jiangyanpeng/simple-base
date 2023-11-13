@@ -1,0 +1,8 @@
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/common)
+file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
+foreach(FILE ${files})
+#     message("-- ${FILE}")
+      get_filename_component(EXECUTABLE_NAME ${FILE} NAME_WE)
+      add_executable(${EXECUTABLE_NAME} ${FILE})
+      target_link_libraries(${EXECUTABLE_NAME} simple_base)
+endforeach(FILE ${SOURCE_FILES})
