@@ -217,12 +217,12 @@ public:
 
 private:
     MStatus InitImageParamters();
-    void CreatDataManager(const MemoryType mem_type);
+    MStatus CreatDataManager(const MemoryType mem_type);
 
     uint32_t width_;
     uint32_t height_;
     uint32_t stride_;
-    uint32_t nscalar_; // image byte size
+    uint32_t nscalar_;
     uint32_t number_;
     uint32_t channel_;
     uint32_t type_size_;
@@ -230,7 +230,9 @@ private:
     std::string pixel_format_str_;
     TimeStamp time_stamp_;
     std::shared_ptr<DataManager> data_manager_;
+    
     bool use_cache_{false};
+    bool init_done_{false};
 };
 
 inline std::string LogImage(std::string prefix, const Image& image) {

@@ -87,24 +87,37 @@ typedef enum PixelFormat {
 } PixelFormat;
 
 typedef enum MStatus {
-    M_OK                           = 0,
-    M_FAILED                       = 1,
-    M_INVALID_ARG                  = 2,
-    M_FILE_NOT_FOUND               = 3,
-    M_INVALID_FILE_FORMAT          = 4,
-    M_INTERNAL_FAILED              = 5,
-    M_OUT_OF_MEMORY                = 6,
-    M_LICENSE_EXPIRE               = 7,
-    M_UUID_MISMATCH                = 8,
-    M_ONLINE_ACTIVATE_NO_NEED      = 9,
-    M_ONLINE_ACTIVATE_FAIL         = 10,
-    M_ONLINE_ACTIVATE_CODE_INVALID = 11,
-    M_ONLINE_ACTIVATE_CONNECT_FAIL = 12,
-    M_ONLINE_AUTH_TIME_OUT         = 13,
-    M_LICENSE_ACTIVATIONS_RUN_OUT  = 14,
-    M_MAX_STATUS                   = 15
+    M_OK                  = 0,
+    M_FAILED              = 1,
+    M_INVALID_ARG         = 2,
+    M_FILE_NOT_FOUND      = 3,
+    M_INVALID_FILE_FORMAT = 4,
+    M_INTERNAL_FAILED     = 5,
+    M_OUT_OF_MEMORY       = 6,
+    M_NOT_SUPPORT         = 7,
+    M_MAX_STATUS          = 8
 } MStatus;
 
+/** enumerator to indicate primitive numeric types */
+typedef enum DataType {
+    M_DATA_TYPE_NONE    = -1, /// FOR CUDA
+    M_DATA_TYPE_BYTE    = 0,  ///< obscure bytes (e.g. encoded JPEG)
+    M_DATA_TYPE_BOOL    = 1,  ///< boolean (1-byte)
+    M_DATA_TYPE_INT8    = 2,  ///< 8-bit signed integer
+    M_DATA_TYPE_INT16   = 3,  ///< 16-bit signed integer
+    M_DATA_TYPE_INT32   = 4,  ///< 32-bit signed integer
+    M_DATA_TYPE_INT64   = 5,  ///< 64-bit signed integer
+    M_DATA_TYPE_UINT8   = 6,  ///< 8-bit unsigned integer
+    M_DATA_TYPE_UINT16  = 7,  ///< 16-bit unsigned integer
+    M_DATA_TYPE_UINT32  = 8,  ///< 32-bit unsigned integer
+    M_DATA_TYPE_UINT64  = 9,  ///< 64-bit unsigned integer
+    M_DATA_TYPE_FLOAT16 = 10, ///< 16-bit floating point real number
+    M_DATA_TYPE_FLOAT32 = 11, ///< 16-bit floating point real number
+    M_DATA_TYPE_FLOAT64 = 12, ///< 64-bit floating point real number
+    M_DATA_TYPE_FIX16   = 13, ///< 16-bit floating point real number
+    M_DATA_TYPE_FIX32   = 14, ///< 16-bit floating point real number
+    M_DATA_TYPE_FIX64   = 15, ///< 64-bit floating point real number
+} DataType;
 #ifdef __cplusplus
 }
 #endif // __cplusplus
