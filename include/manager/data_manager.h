@@ -1,5 +1,5 @@
-#ifndef SIMPLE_BASE_DATA_MANAGER_BASE_H_
-#define SIMPLE_BASE_DATA_MANAGER_BASE_H_
+#ifndef SIMPLE_BASE_DATA_MANAGER_H_
+#define SIMPLE_BASE_DATA_MANAGER_H_
 
 #include "common.h"
 #include "log.h"
@@ -96,21 +96,21 @@ static inline void fast_free(void* ptr) {
     }
 }
 
-class DataManger {
+class EXPORT_API DataManager {
 public:
-    DataManger()
+    DataManager()
         : mem_type_(MemoryType::MEM_ON_CPU),
           mem_type_str_(MEMTYPE_CPU),
           use_cache_(false),
           data_{nullptr},
           size_(0U) {}
 
-    virtual ~DataManger() {}
+    virtual ~DataManager() {}
 
     virtual void* Malloc(const uint32_t size);
     virtual void* Setptr(void* ptr, uint32_t size);
     virtual void Free();
-    virtual std::shared_ptr<DataManger> Create() const;
+    virtual std::shared_ptr<DataManager> Create() const;
 
     virtual MStatus SyncCache(bool io = true);
 
@@ -156,4 +156,4 @@ private:
 };
 
 } // namespace base
-#endif // SIMPLE_BASE_DATA_MANAGER_BASE_H_
+#endif // SIMPLE_BASE_DATA_MANAGER_H_

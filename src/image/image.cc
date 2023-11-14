@@ -330,14 +330,14 @@ MStatus Image::ImageReshape(const uint32_t width,
 }
 
 void Image::CreatDataManager(const MemoryType mem_type) {
-    std::string mem_type_str = DataManger::MemTypeToMemTypeStr(mem_type);
+    std::string mem_type_str = DataManager::MemTypeToMemTypeStr(mem_type);
     SIMPLE_LOG_DEBUG("Image::CreatDataManager {}", mem_type_str);
 
     if (use_cache_) {
         SIMPLE_LOG_ERROR("now not support cache manager memory, {}", mem_type_str);
         return;
     } else {
-        this->data_manager_ = std::make_shared<DataManger>();
+        this->data_manager_ = std::make_shared<DataManager>();
     }
 
     if (nullptr == this->data_manager_) {
@@ -346,7 +346,7 @@ void Image::CreatDataManager(const MemoryType mem_type) {
     }
 }
 
-MStatus Image::ImageDataManagerReplace(const std::shared_ptr<DataManger>& data_mgr) {
+MStatus Image::ImageDataManagerReplace(const std::shared_ptr<DataManager>& data_mgr) {
     if (this->GetDataManager() == nullptr || data_mgr == nullptr) {
         SIMPLE_LOG_ERROR("ImageDataManagerReplace failed, data_mgr is nullptr");
         return MStatus::M_FAILED;

@@ -10,10 +10,7 @@
 #include <string.h>
 #include <vector>
 
-class ShareCenterNodes;
-using ShareCenterNodesPtr = std::shared_ptr<ShareCenterNodes>;
 namespace base {
-
 class EXPORT_API Image final {
 public:
     Image();
@@ -150,7 +147,7 @@ public:
                          const PixelFormat pixel_format);
 
     /// @brief repalce data manager
-    MStatus ImageDataManagerReplace(const std::shared_ptr<DataManger>& data_mgr);
+    MStatus ImageDataManagerReplace(const std::shared_ptr<DataManager>& data_mgr);
 
     bool operator==(const Image& other);
     bool operator!=(const Image& other);
@@ -199,7 +196,7 @@ public:
     inline uint32_t GetSize() const { return number_ * nscalar_; }
 
     /// @brief Get data manager of image
-    inline const std::shared_ptr<DataManger>& GetDataManager() const { return data_manager_; }
+    inline const std::shared_ptr<DataManager>& GetDataManager() const { return data_manager_; }
 
     /// @brief Get memory type of image
     /// @note
@@ -232,7 +229,7 @@ private:
     PixelFormat pixel_format_;
     std::string pixel_format_str_;
     TimeStamp time_stamp_;
-    std::shared_ptr<DataManger> data_manager_;
+    std::shared_ptr<DataManager> data_manager_;
     bool use_cache_{false};
 };
 
