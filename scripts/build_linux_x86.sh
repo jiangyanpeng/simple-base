@@ -5,3 +5,4 @@ rm -rf build && mkdir build && cd build
 cmake ..
 # make -j4 && make install
 make -j4
+./bin/test_base
