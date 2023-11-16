@@ -10,10 +10,7 @@
 #include <string.h>
 #include <vector>
 
-class ShareCenterNodes;
-using ShareCenterNodesPtr = std::shared_ptr<ShareCenterNodes>;
 namespace base {
-
 class EXPORT_API Image final {
 public:
     Image();
@@ -38,7 +35,7 @@ public:
           const PixelFormat pixel_format,
           const TimeStamp& time_stamp,
           const void* data,
-          const MemoryType mem_type = MemoryType::MEM_ON_CPU,
+          const MemoryType mem_type = MemoryType::M_MEM_ON_CPU,
           const bool use_cache      = false);
 
     /// @brief Construct image with memory allocate
@@ -76,7 +73,7 @@ public:
           const uint32_t number,
           const PixelFormat pixel_format,
           const TimeStamp& time_stamp,
-          const MemoryType mem_type = MemoryType::MEM_ON_CPU,
+          const MemoryType mem_type = MemoryType::M_MEM_ON_CPU,
           const bool use_cache      = false);
 
     /// @brief Construct  with specified format, only memory alloc, no data copy
@@ -150,7 +147,7 @@ public:
                          const PixelFormat pixel_format);
 
     /// @brief repalce data manager
-    MStatus ImageDataManagerReplace(const std::shared_ptr<DataManger>& data_mgr);
+    MStatus ImageDataManagerReplace(const std::shared_ptr<DataManager>& data_mgr);
 
     bool operator==(const Image& other);
     bool operator!=(const Image& other);
@@ -199,7 +196,7 @@ public:
     inline uint32_t GetSize() const { return number_ * nscalar_; }
 
     /// @brief Get data manager of image
-    inline const std::shared_ptr<DataManger>& GetDataManager() const { return data_manager_; }
+    inline const std::shared_ptr<DataManager>& GetDataManager() const { return data_manager_; }
 
     /// @brief Get memory type of image
     /// @note
@@ -220,20 +217,23 @@ public:
 
 private:
     MStatus InitImageParamters();
-    void CreatDataManager(const MemoryType mem_type);
+    MStatus CreatDataManager(const MemoryType mem_type);
 
-    uint32_t width_;
-    uint32_t height_;
-    uint32_t stride_;
-    uint32_t nscalar_; // image byte size
-    uint32_t number_;
-    uint32_t channel_;
-    uint32_t type_size_;
-    PixelFormat pixel_format_;
-    std::string pixel_format_str_;
+    uint32_t number_{0u};
+    uint32_t width_{0u};
+    uint32_t height_{0u};
+    uint32_t channel_{0u};
+    uint32_t stride_{0u};
+    uint32_t nscalar_{0u};
+    uint32_t type_size_{0u};
+
     TimeStamp time_stamp_;
-    std::shared_ptr<DataManger> data_manager_;
+    PixelFormat pixel_format_;
+    std::string pixel_format_str_{};
+    std::shared_ptr<DataManager> data_manager_{nullptr};
+
     bool use_cache_{false};
+    bool init_done_{false};
 };
 
 inline std::string LogImage(std::string prefix, const Image& image) {

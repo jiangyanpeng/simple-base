@@ -9,27 +9,21 @@
 #include <iomanip>
 
 namespace base {
-const static std::string FormatStr[M_PIX_FMT_MAX] = {
-    "GRAY8",     "RGBA8888",      "RGB888",           "RGB888_PLANAR", "BGRA8888",
-    "BGR888",    "BGR888_PLANAR", "YUV420P",          "NV12",          "NV21",
-    "GRAY32",    "RGB323232",     "RGB323232_PLANAR", "BGR323232",     "BGR323232_PLANAR",
-    "GRAY16",    "RGB161616",     "RGB161616_PLANAR", "BGR161616",     "BGR161616_PLANAR",
-    "FLOAT32C4", "NV12_DETACH",   "NV21_DETACH",      "YUYV",          "UYVY",
-    "YV12",      "YU12"};
 
 Image::Image()
-    : width_{0},
+    : number_{0},
+      width_{0},
       height_{0},
+      channel_{0},
       stride_{0},
       nscalar_{0},
-      number_{0},
-      channel_{0},
       type_size_{0},
+      time_stamp_{},
       pixel_format_{},
       pixel_format_str_{},
-      time_stamp_{},
-      data_manager_(nullptr),
-      use_cache_(false) {}
+      data_manager_{nullptr},
+      use_cache_{false},
+      init_done_{false} {}
 
 Image::Image(const uint32_t width,
              const uint32_t height,
@@ -45,17 +39,23 @@ Image::Image(const uint32_t width,
     pixel_format_ = format;
     time_stamp_   = time_stamp;
     use_cache_    = use_cache;
+
     if (nullptr == data) {
-        SIMPLE_LOG_ERROR("construct image failed, ptr nullptr err");
+        SIMPLE_LOG_ERROR("construct image failed, input ptr nullptr");
         return;
     }
-    this->CreatDataManager(mem_type);
+
+    if (this->CreatDataManager(mem_type) != MStatus::M_OK) {
+        SIMPLE_LOG_ERROR("construct image failed, init image manager failed");
+        return;
+    }
 
     if (this->InitImageParamters() != MStatus::M_OK) {
         SIMPLE_LOG_ERROR("construct image failed, init image paramters failed");
         return;
     }
     this->data_manager_->Setptr(const_cast<void*>(data), this->nscalar_ * this->number_);
+    init_done_ = true;
 }
 Image::Image(const uint32_t width,
              const uint32_t height,
@@ -70,7 +70,11 @@ Image::Image(const uint32_t width,
       pixel_format_{pixel_format},
       use_cache_{use_cache} {
 
-    CreatDataManager(mem_type);
+    if (this->CreatDataManager(mem_type) != MStatus::M_OK) {
+        SIMPLE_LOG_ERROR("construct image failed, init image manager failed");
+        return;
+    }
+
     if (this->InitImageParamters() != MStatus::M_OK) {
         SIMPLE_LOG_ERROR("construct image failed, init image paramters failed");
         return;
@@ -79,6 +83,7 @@ Image::Image(const uint32_t width,
     if (!mem_alloced) {
         this->data_manager_->Malloc(this->nscalar_ * this->number_);
     }
+    init_done_ = true;
 }
 
 Image::Image(const uint32_t width,
@@ -94,13 +99,19 @@ Image::Image(const uint32_t width,
     pixel_format_ = format;
     time_stamp_   = time_stamp;
     use_cache_    = use_cache;
-    CreatDataManager(mem_type);
+
+    if (this->CreatDataManager(mem_type) != MStatus::M_OK) {
+        SIMPLE_LOG_ERROR("construct image failed, init image manager failed");
+        return;
+    }
+
     if (this->InitImageParamters() != MStatus::M_OK) {
         SIMPLE_LOG_ERROR("construct image failed, init image paramters failed");
         return;
     }
 
     this->data_manager_->Malloc(this->nscalar_ * this->number_);
+    init_done_ = true;
 }
 
 MStatus Image::ImageSplit(const uint32_t idx, Image& image_out) const {
@@ -110,6 +121,10 @@ MStatus Image::ImageSplit(const uint32_t idx, Image& image_out) const {
 
 MStatus
 Image::ImageSplitChannel(const uint32_t batch, const uint32_t channel, Image& image_out) const {
+    if (!init_done_) {
+        SIMPLE_LOG_ERROR("splict channel failed, construct image no init success");
+        return MStatus::M_INTERNAL_FAILED;
+    }
     if (channel >= this->channel_) {
         SIMPLE_LOG_ERROR(
             "input channel {} is more than image's channel {}", channel, this->channel_);
@@ -127,7 +142,7 @@ Image::ImageSplitChannel(const uint32_t batch, const uint32_t channel, Image& im
     }
 
     auto mem_type = this->data_manager_->GetMemType();
-    auto offset   = (mem_type == MemoryType::MEM_ON_OCL)
+    auto offset   = (mem_type == MemoryType::M_MEM_ON_OCL)
                       ? 0
                       : batch * this->nscalar_ + channel * (this->width_ * this->height_);
 
@@ -315,6 +330,10 @@ MStatus Image::ImageReshape(const uint32_t width,
                             const uint32_t height,
                             const uint32_t number,
                             const PixelFormat pixel_format) {
+    if (!init_done_) {
+        SIMPLE_LOG_ERROR("splict channel failed, construct image no init success");
+        return MStatus::M_INTERNAL_FAILED;
+    }
     this->pixel_format_ = pixel_format;
     this->width_        = width;
     this->height_       = height;
@@ -329,25 +348,31 @@ MStatus Image::ImageReshape(const uint32_t width,
     return MStatus::M_OK;
 }
 
-void Image::CreatDataManager(const MemoryType mem_type) {
-    std::string mem_type_str = DataManger::MemTypeToMemTypeStr(mem_type);
+MStatus Image::CreatDataManager(const MemoryType mem_type) {
+    std::string mem_type_str = DataManager::MemTypeToMemTypeStr(mem_type);
     SIMPLE_LOG_DEBUG("Image::CreatDataManager {}", mem_type_str);
 
-    if (use_cache_) {
-        SIMPLE_LOG_ERROR("now not support cache manager memory, {}", mem_type_str);
-        return;
-    } else {
-        this->data_manager_ = std::make_shared<DataManger>();
+    if (nullptr == this->data_manager_) {
+        if (use_cache_) {
+            SIMPLE_LOG_ERROR("now not support cache manager memory, {}", mem_type_str);
+            return MStatus::M_NOT_SUPPORT;
+        } else {
+            this->data_manager_ = std::make_shared<DataManager>();
+        }
     }
-
     if (nullptr == this->data_manager_) {
         SIMPLE_LOG_ERROR("data_manager is nullptr, {}", mem_type_str);
-        return;
+        return M_INTERNAL_FAILED;
     }
+    return MStatus::M_OK;
 }
 
-MStatus Image::ImageDataManagerReplace(const std::shared_ptr<DataManger>& data_mgr) {
-    if (this->GetDataManager() == nullptr || data_mgr == nullptr) {
+MStatus Image::ImageDataManagerReplace(const std::shared_ptr<DataManager>& data_mgr) {
+    if (!init_done_) {
+        SIMPLE_LOG_ERROR("splict channel failed, construct image no init success");
+        return MStatus::M_INTERNAL_FAILED;
+    }
+    if (nullptr == this->GetDataManager() || nullptr == data_mgr) {
         SIMPLE_LOG_ERROR("ImageDataManagerReplace failed, data_mgr is nullptr");
         return MStatus::M_FAILED;
     }
@@ -357,7 +382,7 @@ MStatus Image::ImageDataManagerReplace(const std::shared_ptr<DataManger>& data_m
                          data_mgr->GetSize());
         return MStatus::M_FAILED;
     }
-    data_manager_ = data_mgr;
+    data_manager_ = std::move(data_mgr);
     return MStatus::M_OK;
 }
 
