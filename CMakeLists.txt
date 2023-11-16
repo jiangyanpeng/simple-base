@@ -53,13 +53,13 @@ SET(THIRD_PARTY_LIBS
 )
 
 # INTERNAL LIBS #
-SET(SIMPLE_BASE_LIBS simple_base)
+SET(BASE_LIBS base)
 
 ####### build static lib #######
-ADD_LIBRARY(${SIMPLE_BASE_LIBS} STATIC ${base_src})
+ADD_LIBRARY(${BASE_LIBS} STATIC ${base_src})
 
 ####### build shared lib #######
-# ADD_LIBRARY(${SIMPLE_BASE_LIBS} SHARED ${base_src})
+# ADD_LIBRARY(${BASE_LIBS} SHARED ${base_src})
 
 ####### INSTALL PYTHON #######
 # INSTALL(DIRECTORY  
