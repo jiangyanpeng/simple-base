@@ -9,28 +9,21 @@
 #include <iomanip>
 
 namespace base {
-const static std::string FormatStr[M_PIX_FMT_MAX] = {
-    "GRAY8",     "RGBA8888",      "RGB888",           "RGB888_PLANAR", "BGRA8888",
-    "BGR888",    "BGR888_PLANAR", "YUV420P",          "NV12",          "NV21",
-    "GRAY32",    "RGB323232",     "RGB323232_PLANAR", "BGR323232",     "BGR323232_PLANAR",
-    "GRAY16",    "RGB161616",     "RGB161616_PLANAR", "BGR161616",     "BGR161616_PLANAR",
-    "FLOAT32C4", "NV12_DETACH",   "NV21_DETACH",      "YUYV",          "UYVY",
-    "YV12",      "YU12"};
 
 Image::Image()
-    : width_{0},
+    : number_{0},
+      width_{0},
       height_{0},
+      channel_{0},
       stride_{0},
       nscalar_{0},
-      number_{0},
-      channel_{0},
       type_size_{0},
+      time_stamp_{},
       pixel_format_{},
       pixel_format_str_{},
-      time_stamp_{},
-      data_manager_(nullptr),
-      use_cache_(false),
-      init_done_(false) {}
+      data_manager_{nullptr},
+      use_cache_{false},
+      init_done_{false} {}
 
 Image::Image(const uint32_t width,
              const uint32_t height,
@@ -149,7 +142,7 @@ Image::ImageSplitChannel(const uint32_t batch, const uint32_t channel, Image& im
     }
 
     auto mem_type = this->data_manager_->GetMemType();
-    auto offset   = (mem_type == MemoryType::MEM_ON_OCL)
+    auto offset   = (mem_type == MemoryType::M_MEM_ON_OCL)
                       ? 0
                       : batch * this->nscalar_ + channel * (this->width_ * this->height_);
 
@@ -359,13 +352,14 @@ MStatus Image::CreatDataManager(const MemoryType mem_type) {
     std::string mem_type_str = DataManager::MemTypeToMemTypeStr(mem_type);
     SIMPLE_LOG_DEBUG("Image::CreatDataManager {}", mem_type_str);
 
-    if (use_cache_) {
-        SIMPLE_LOG_ERROR("now not support cache manager memory, {}", mem_type_str);
-        return MStatus::M_NOT_SUPPORT;
-    } else {
-        this->data_manager_ = std::make_shared<DataManager>();
+    if (nullptr == this->data_manager_) {
+        if (use_cache_) {
+            SIMPLE_LOG_ERROR("now not support cache manager memory, {}", mem_type_str);
+            return MStatus::M_NOT_SUPPORT;
+        } else {
+            this->data_manager_ = std::make_shared<DataManager>();
+        }
     }
-
     if (nullptr == this->data_manager_) {
         SIMPLE_LOG_ERROR("data_manager is nullptr, {}", mem_type_str);
         return M_INTERNAL_FAILED;
@@ -378,7 +372,7 @@ MStatus Image::ImageDataManagerReplace(const std::shared_ptr<DataManager>& data_
         SIMPLE_LOG_ERROR("splict channel failed, construct image no init success");
         return MStatus::M_INTERNAL_FAILED;
     }
-    if (this->GetDataManager() == nullptr || data_mgr == nullptr) {
+    if (nullptr == this->GetDataManager() || nullptr == data_mgr) {
         SIMPLE_LOG_ERROR("ImageDataManagerReplace failed, data_mgr is nullptr");
         return MStatus::M_FAILED;
     }
@@ -388,7 +382,7 @@ MStatus Image::ImageDataManagerReplace(const std::shared_ptr<DataManager>& data_
                          data_mgr->GetSize());
         return MStatus::M_FAILED;
     }
-    data_manager_ = data_mgr;
+    data_manager_ = std::move(data_mgr);
     return MStatus::M_OK;
 }
 

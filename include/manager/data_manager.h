@@ -22,11 +22,11 @@ namespace base {
 #define MEMTYPE_INVALID ("INVALID")
 
 const static std::unordered_map<std::string, MemoryType> mem_type_map_ = {
-    {MEMTYPE_CPU, MemoryType::MEM_ON_CPU},
-    {MEMTYPE_CUDA_HOST, MemoryType::MEM_ON_CUDA_HOST},
-    {MEMTYPE_CUDA_DEV, MemoryType::MEM_ON_CUDA_DEV},
-    {MEMTYPE_OCL, MemoryType::MEM_ON_OCL},
-    {MEMTYPE_HEXAGON_DSP, MemoryType::MEM_ON_HEXAGON_DSP}};
+    {MEMTYPE_CPU, MemoryType::M_MEM_ON_CPU},
+    {MEMTYPE_CUDA_HOST, MemoryType::M_MEM_ON_CUDA_HOST},
+    {MEMTYPE_CUDA_DEV, MemoryType::M_MEM_ON_CUDA_DEV},
+    {MEMTYPE_OCL, MemoryType::M_MEM_ON_OCL},
+    {MEMTYPE_HEXAGON_DSP, MemoryType::M_MEM_ON_HEXAGON_DSP}};
 
 
 /* align up to z^n */
@@ -99,7 +99,7 @@ static inline void fast_free(void* ptr) {
 class EXPORT_API DataManager {
 public:
     DataManager()
-        : mem_type_(MemoryType::MEM_ON_CPU),
+        : mem_type_(MemoryType::M_MEM_ON_CPU),
           mem_type_str_(MEMTYPE_CPU),
           use_cache_(false),
           data_{nullptr},
@@ -141,7 +141,7 @@ public:
         auto it = mem_type_map_.find(type);
         if (it == mem_type_map_.end()) {
             SIMPLE_LOG_ERROR("unsupport mem type {}", type);
-            return MemoryType::MEM_ON_MEMORY_TYPE_MAX;
+            return MemoryType::M_MEM_ON_MEMORY_MAX;
         }
         return it->second;
     }

@@ -35,7 +35,7 @@ public:
           const PixelFormat pixel_format,
           const TimeStamp& time_stamp,
           const void* data,
-          const MemoryType mem_type = MemoryType::MEM_ON_CPU,
+          const MemoryType mem_type = MemoryType::M_MEM_ON_CPU,
           const bool use_cache      = false);
 
     /// @brief Construct image with memory allocate
@@ -73,7 +73,7 @@ public:
           const uint32_t number,
           const PixelFormat pixel_format,
           const TimeStamp& time_stamp,
-          const MemoryType mem_type = MemoryType::MEM_ON_CPU,
+          const MemoryType mem_type = MemoryType::M_MEM_ON_CPU,
           const bool use_cache      = false);
 
     /// @brief Construct  with specified format, only memory alloc, no data copy
@@ -219,18 +219,19 @@ private:
     MStatus InitImageParamters();
     MStatus CreatDataManager(const MemoryType mem_type);
 
-    uint32_t width_;
-    uint32_t height_;
-    uint32_t stride_;
-    uint32_t nscalar_;
-    uint32_t number_;
-    uint32_t channel_;
-    uint32_t type_size_;
-    PixelFormat pixel_format_;
-    std::string pixel_format_str_;
+    uint32_t number_{0u};
+    uint32_t width_{0u};
+    uint32_t height_{0u};
+    uint32_t channel_{0u};
+    uint32_t stride_{0u};
+    uint32_t nscalar_{0u};
+    uint32_t type_size_{0u};
+
     TimeStamp time_stamp_;
-    std::shared_ptr<DataManager> data_manager_;
-    
+    PixelFormat pixel_format_;
+    std::string pixel_format_str_{};
+    std::shared_ptr<DataManager> data_manager_{nullptr};
+
     bool use_cache_{false};
     bool init_done_{false};
 };
