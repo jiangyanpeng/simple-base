@@ -4,10 +4,8 @@ PROJECT(simple.base)
 ######## COMPILE #######
 SET(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 SET(CMAKE_BUILD_TYPE "DEBUG")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 SET(CMAKE_CXX_FLAGS "${CAMKE_CXX_FLAGS} -std=c++11 -march=native -O3 -pthread")
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/bin)
-SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/lib)
 
 OPTION(BUILD_USE_AVX           "Use AVX"                    OFF)
 OPTION(BUILD_ENABLE_BENCHMARK  "Enable Benchmark"           OFF)
@@ -29,7 +27,7 @@ OPTION(BUILD_ENABLE_BENCHMARK  "Enable Benchmark"           OFF)
 # ENDIF()
 
 ######## CONFIG OPTION ######
-SET(VERSION "1.0.0")
+SET(VERSION "1.0.2")
 CONFIGURE_FILE(
     "${PROJECT_SOURCE_DIR}/src/config.h.in"
     "${PROJECT_BINARY_DIR}/config.h")
@@ -41,29 +39,22 @@ INCLUDE_DIRECTORIES(
 )
 # INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
 
-####### SOURCES (Projects) #######
+####### SOURCES #######
 FILE(GLOB_RECURSE base_src ${PROJECT_SOURCE_DIR}/src/*.cc)
 
-
-####### LIBS #######
-# thirdparty
+####### THIDPARTY LIBS #######
 SET(THIRD_PARTY_LIBS
     #${OpenCV_LIBS}
     #${EIGEN3_LIBS}
 )
 
-# INTERNAL LIBS #
+####### BUILD STATIC LIB #######
 SET(BASE_LIBS base)
-
-####### build static lib #######
 ADD_LIBRARY(${BASE_LIBS} STATIC ${base_src})
 
-####### build shared lib #######
+####### BUILD SHARED LIB #######
+# SET(BASE_LIBS base)
 # ADD_LIBRARY(${BASE_LIBS} SHARED ${base_src})
-
-####### INSTALL PYTHON #######
-# INSTALL(DIRECTORY  
-#     ${PROJECT_SOURCE_DIR}/python DESTINATION ${PROJECT_SOURCE_DIR}/build)
 
 ####### UINT TEST   ##########
 # ENABLE_TESTING()
@@ -74,9 +65,16 @@ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
 # ADD_SUBDIRECTORY(third_party/googletest)
 # INCLUDE_DIRECTORIES(third_party/googletest/include)
 
-############ build sample #########
+####### BUILD SAMPLE #######
 ADD_SUBDIRECTORY(samples)
 
-IF(BUILD_USE_STB MATCHES ON)
-    ADD_SUBDIRECTORY(benchmark)
+####### INSTALL LIBS #######
+IF(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
+    INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include DESTINATION "${CMAKE_INSTALL_PREFIX}/")
+ENDIF()
+IF(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
+    INSTALL(TARGETS test_base ${BASE_LIBS} ${BASE_LIBS}
+        RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
+        LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" )
 ENDIF()
