@@ -38,6 +38,14 @@ extern "C" {
 #define unlikely(x) (x)
 #endif
 
+#if defined(_MSC_VER) || defined(__CODEGEARC__)
+#define SIMPLE_INLINE __forceinline
+#elif defined(__GNUC__)
+#define SIMPLE_INLINE inline __attribute__((always_inline))
+#else
+#error This platform is unsupported!
+#endif
+
 /** A struct to show time  */
 typedef struct TimeStamp {
     long int tv_sec;  /**< second */
