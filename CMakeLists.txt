@@ -8,7 +8,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 SET(CMAKE_CXX_FLAGS "${CAMKE_CXX_FLAGS} -std=c++11 -march=native -O3 -pthread")
 
 OPTION(BUILD_USE_AVX           "Use AVX"                    OFF)
-OPTION(BUILD_ENABLE_BENCHMARK  "Enable Benchmark"           OFF)
+OPTION(BUILD_ENABLE_Benchmark  "Enable Benchmark"           OFF)
 
 # IF(BUILD_USE_ENPU MATCHES ON)
 #     ADD_DEFINITIONS(-DUSE_ENPU)
