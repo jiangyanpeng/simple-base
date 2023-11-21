@@ -5,3 +5,5 @@ install/*
 cmake-build-debug/*
 .idea/*
 deps/*
+third_party/*
+!third_party/.keep

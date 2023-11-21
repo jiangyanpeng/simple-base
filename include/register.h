@@ -2,11 +2,17 @@
 #define SIMPLE_BASE_REGISTER_H_
 
 #include "common.h"
+#include "log.h"
+
 #include <functional>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
+/// @brief Universal Register Base Singleton Class
+/// @tparam Base
+/// @note
+/// The object created from the registrar is not the same object
 template <typename Base>
 class RegisterBase {
 public:
@@ -19,7 +25,9 @@ public:
     }
 
     void Register(const std::string& key, Creator creator) {
+        SIMPLE_LOG_DEBUG("will Register {} creator", key.c_str());
         if (creator_map_.count(key)) {
+            SIMPLE_LOG_WARN("Register type {} already register", key);
             return;
         }
         creator_map_[key] = creator;
@@ -27,8 +35,9 @@ public:
     }
 
     std::shared_ptr<Base> Create(const std::string& key) {
+        SIMPLE_LOG_DEBUG("will Create {} creator", key.c_str());
         if (!creator_map_.count(key)) {
-            // SIMPLE_LOG_ERROR("Register  type {} not register", key);
+            SIMPLE_LOG_ERROR("Register type {} not register", key);
             return nullptr;
         }
         return creator_map_[key]();
