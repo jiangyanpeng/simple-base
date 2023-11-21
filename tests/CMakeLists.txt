@@ -18,7 +18,7 @@ target_include_directories(${TARGET_NAME} PUBLIC
 )
 
 target_link_libraries(${TARGET_NAME}
-    ${BASE_LIBS}
+    ${SIMPLE_BASE_LIBS}
     ${GTEST_LIBRARIES}
     ${CMAKE_DL_LIBS}
 )
