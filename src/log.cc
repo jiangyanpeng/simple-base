@@ -577,12 +577,12 @@ static const char* lvl_to_str(log_level level) {
     return "";
 }
 
-#if AD_LOG_OS_LINUX_ANDROID
+#ifdef __ANDROID__
 #include <android/log.h>
 #define BUFF_SIZE 512
 #define LIMIT_SIZE 500
 char buff[BUFF_SIZE];
-static int32_t ad_log_std(log_format* meta, const char* fmt, va_list vl) {
+static int32_t simple_log_std(log_format* meta, const char* fmt, va_list vl) {
     char chrono[64]       = {0};
     int32_t done          = 0;
     struct timespec ts    = {0, 0};
@@ -632,7 +632,7 @@ static int32_t ad_log_std(log_format* meta, const char* fmt, va_list vl) {
 }
 #else
 static const int32_t g_ll_color[] = {32, 36, 34, 33, 31};
-static int32_t ad_log_std(log_format* meta, const char* fmt, va_list vl) {
+static int32_t simple_log_std(log_format* meta, const char* fmt, va_list vl) {
     char chrono[64] = {0};
     int32_t done = 0;
     FILE* output = stdout;
@@ -658,7 +658,8 @@ static int32_t ad_log_std(log_format* meta, const char* fmt, va_list vl) {
     fprintf(output, "\033[0m");
     return done;
 }
-#endif
+#endif // __ANDROID__
+
 void set_log_level(log_level level) {
     g_ad_log_level = level;
 }
@@ -667,12 +668,12 @@ log_level get_log_level() {
     return g_ad_log_level;
 }
 
-int32_t ad_log(log_format* meta, const char* fmt, ...) {
+int32_t simple_log(log_format* meta, const char* fmt, ...) {
     int32_t done = 0;
     if (meta->level >= g_ad_log_level && NULL != fmt) {
         va_list vl;
         va_start(vl, fmt);
-        done = ad_log_std(meta, fmt, vl);
+        done = simple_log_std(meta, fmt, vl);
         va_end(vl);
     }
     return done;

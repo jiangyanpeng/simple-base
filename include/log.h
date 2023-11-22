@@ -3999,147 +3999,11 @@ void set_log_level(log_level level);
 
 log_level get_log_level();
 
-int32_t ad_log(log_format* meta, const char* fmt, ...);
+int32_t simple_log(log_format* meta, const char* fmt, ...);
 
 #ifdef __cplusplus
 }
 #endif // __cplusplus
-
-// #if defined(CONFIG_SDK_LICENSE_ENABLE_LOG) || defined(EXTERN_ENABLE_LOG)
-// #ifdef __cplusplus
-// #include <iostream>
-// #if defined(__linux__) || defined(__android__) || defined(__QNX__)
-// #pragma GCC diagnostic push
-// #ifdef __aarch64__
-// #pragma GCC diagnostic ignored "-Wpedantic"
-// #pragma GCC diagnostic ignored "-Wold-style-cast"
-// #endif
-// #endif
-
-// #define _SIMPLE_LOG_TRACE(ft, ...)                                \
-//     do {                                                          \
-//         std::string fmt_str = fmt::format(ft, ##__VA_ARGS__);     \
-//         log_format meta  = {LOG_TRACE, __LINE__, __FILE__}; \
-//         ad_log(&meta, fmt_str.c_str());                           \
-//     } while (0)
-
-// #define _SIMPLE_LOG_DEBUG(ft, ...)                                \
-//     do {                                                          \
-//         std::string fmt_str = fmt::format(ft, ##__VA_ARGS__);     \
-//         log_format meta  = {LOG_DEBUG, __LINE__, __FILE__}; \
-//         ad_log(&meta, fmt_str.c_str());                           \
-//     } while (0)
-
-// #define _SIMPLE_LOG_INFO(ft, ...)                                \
-//     do {                                                         \
-//         std::string fmt_str = fmt::format(ft, ##__VA_ARGS__);    \
-//         log_format meta  = {LOG_INFO, __LINE__, __FILE__}; \
-//         ad_log(&meta, fmt_str.c_str());                          \
-//     } while (0)
-
-// #define _SIMPLE_LOG_WARN(ft, ...)                                   \
-//     do {                                                            \
-//         std::string fmt_str = fmt::format(ft, ##__VA_ARGS__);       \
-//         log_format meta  = {LOG_WARNING, __LINE__, __FILE__}; \
-//         ad_log(&meta, fmt_str.c_str());                             \
-//     } while (0)
-
-// #define _SIMPLE_LOG_ERROR(ft, ...)                                \
-//     do {                                                          \
-//         std::string fmt_str = fmt::format(ft, ##__VA_ARGS__);     \
-//         log_format meta  = {LOG_ERROR, __LINE__, __FILE__}; \
-//         ad_log(&meta, fmt_str.c_str());                           \
-//     } while (0)
-
-// typedef enum {
-//     SDK_TRACE = 0,
-//     SDK_DEBUG = 1,
-//     SDK_INFO  = 2,
-//     SDK_WARN  = 3,
-//     SDK_ERR   = 4,
-// } log_level_enum;
-
-// namespace spdlog {
-
-// namespace level {
-//     typedef enum {
-//         trace    = 0,
-//         debug    = 1,
-//         info     = 2,
-//         warn     = 3,
-//         err      = 4,
-//         critical = 5,
-//         off      = 6
-//     } level_enum;
-// }
-
-// class logger {
-// public:
-//     logger();
-
-//     virtual ~logger();
-//     logger(const logger&) = delete;
-//     logger& operator=(const logger&) = delete;
-
-//     void set_level(level::level_enum lv) { ad_log_set_level(static_cast<ad_log_level_e>(lv)); };
-//     level::level_enum level() { return static_cast<level::level_enum>(ad_log_get_level()); }
-// };
-// } // namespace spdlog
-
-// inline std::shared_ptr<spdlog::logger> sdk_get_logger() {
-//     static std::shared_ptr<spdlog::logger> logger_init;
-//     return logger_init;
-// }
-// #if defined(__linux__) || defined(__android__) || defined(__QNX__)
-// #pragma GCC diagnostic pop
-// #endif
-// #else
-
-// #define _SIMPLE_LOG_TRACE(...)                                   \
-//     do {                                                         \
-//         log_format meta = {LOG_TRACE, __LINE__, __FILE__}; \
-//         ad_log(&meta, __VA_ARGS__);                              \
-//     } while (0)
-// #define _SIMPLE_LOG_DEBUG(...)                                   \
-//     do {                                                         \
-//         log_format meta = {LOG_DEBUG, __LINE__, __FILE__}; \
-//         ad_log(&meta, __VA_ARGS__);                              \
-//     } while (0)
-// #define _SIMPLE_LOG_INFO(...)                                   \
-//     do {                                                        \
-//         log_format meta = {LOG_INFO, __LINE__, __FILE__}; \
-//         ad_log(&meta, __VA_ARGS__);                             \
-//     } while (0)
-// #define _SIMPLE_LOG_WARN(...)                                      \
-//     do {                                                           \
-//         log_format meta = {LOG_WARNING, __LINE__, __FILE__}; \
-//         ad_log(&meta, __VA_ARGS__);                                \
-//     } while (0)
-// #define _SIMPLE_LOG_ERROR(...)                                   \
-//     do {                                                         \
-//         log_format meta = {LOG_ERROR, __LINE__, __FILE__}; \
-//         ad_log(&meta, __VA_ARGS__);                              \
-//     } while (0)
-
-// #endif
-// #define SIMPLE_LOG_TRACE(...) \
-//     { _SIMPLE_LOG_TRACE(__VA_ARGS__, ""); }
-// #define SIMPLE_LOG_DEBUG(...) \
-//     { _SIMPLE_LOG_DEBUG(__VA_ARGS__, ""); }
-// #define SIMPLE_LOG_INFO(...) \
-//     { _SIMPLE_LOG_INFO(__VA_ARGS__, ""); }
-// #define SIMPLE_LOG_WARN(...) \
-//     { _SIMPLE_LOG_WARN(__VA_ARGS__, ""); }
-// #define SIMPLE_LOG_ERROR(...) \
-//     { _SIMPLE_LOG_ERROR(__VA_ARGS__, ""); }
-
-// #else
-// #define SIMPLE_LOG_TRACE(...)
-// #define SIMPLE_LOG_DEBUG(...)
-// #define SIMPLE_LOG_INFO(...)
-// #define SIMPLE_LOG_WARN(...)
-// #define SIMPLE_LOG_ERROR(...)
-// #endif
 
 #ifdef __cplusplus
 #include <iostream>
@@ -4155,69 +4019,69 @@ int32_t ad_log(log_format* meta, const char* fmt, ...);
     do {                                                       \
         std::string fmt_str = fmt::format(ft, ##__VA_ARGS__);  \
         log_format meta     = {LOG_TRACE, __LINE__, __FILE__}; \
-        ad_log(&meta, fmt_str.c_str());                        \
+        simple_log(&meta, fmt_str.c_str());                    \
     } while (0)
 
 #define _SIMPLE_LOG_DEBUG(ft, ...)                             \
     do {                                                       \
         std::string fmt_str = fmt::format(ft, ##__VA_ARGS__);  \
         log_format meta     = {LOG_DEBUG, __LINE__, __FILE__}; \
-        ad_log(&meta, fmt_str.c_str());                        \
+        simple_log(&meta, fmt_str.c_str());                    \
     } while (0)
 
 #define _SIMPLE_LOG_INFO(ft, ...)                             \
     do {                                                      \
         std::string fmt_str = fmt::format(ft, ##__VA_ARGS__); \
         log_format meta     = {LOG_INFO, __LINE__, __FILE__}; \
-        ad_log(&meta, fmt_str.c_str());                       \
+        simple_log(&meta, fmt_str.c_str());                   \
     } while (0)
 
 #define _SIMPLE_LOG_WARN(ft, ...)                                \
     do {                                                         \
         std::string fmt_str = fmt::format(ft, ##__VA_ARGS__);    \
         log_format meta     = {LOG_WARNING, __LINE__, __FILE__}; \
-        ad_log(&meta, fmt_str.c_str());                          \
+        simple_log(&meta, fmt_str.c_str());                      \
     } while (0)
 
 #define _SIMPLE_LOG_ERROR(ft, ...)                             \
     do {                                                       \
         std::string fmt_str = fmt::format(ft, ##__VA_ARGS__);  \
         log_format meta     = {LOG_ERROR, __LINE__, __FILE__}; \
-        ad_log(&meta, fmt_str.c_str());                        \
+        simple_log(&meta, fmt_str.c_str());                    \
     } while (0)
 
 #if defined(__linux__) || defined(__android__) || defined(__QNX__)
 #pragma GCC diagnostic pop
 #endif
-#else
-
+#else // __cplusplus
 #define _SIMPLE_LOG_TRACE(...)                             \
     do {                                                   \
         log_format meta = {LOG_TRACE, __LINE__, __FILE__}; \
-        ad_log(&meta, __VA_ARGS__);                        \
+        simple_log(&meta, __VA_ARGS__);                    \
     } while (0)
 #define _SIMPLE_LOG_DEBUG(...)                             \
     do {                                                   \
         log_format meta = {LOG_DEBUG, __LINE__, __FILE__}; \
-        ad_log(&meta, __VA_ARGS__);                        \
+        simple_log(&meta, __VA_ARGS__);                    \
     } while (0)
 #define _SIMPLE_LOG_INFO(...)                             \
     do {                                                  \
         log_format meta = {LOG_INFO, __LINE__, __FILE__}; \
-        ad_log(&meta, __VA_ARGS__);                       \
+        simple_log(&meta, __VA_ARGS__);                   \
     } while (0)
 #define _SIMPLE_LOG_WARN(...)                                \
     do {                                                     \
         log_format meta = {LOG_WARNING, __LINE__, __FILE__}; \
-        ad_log(&meta, __VA_ARGS__);                          \
+        simple_log(&meta, __VA_ARGS__);                      \
     } while (0)
 #define _SIMPLE_LOG_ERROR(...)                             \
     do {                                                   \
         log_format meta = {LOG_ERROR, __LINE__, __FILE__}; \
-        ad_log(&meta, __VA_ARGS__);                        \
+        simple_log(&meta, __VA_ARGS__);                    \
     } while (0)
 
 #endif
+
 #define SIMPLE_LOG_TRACE(...) \
     { _SIMPLE_LOG_TRACE(__VA_ARGS__, ""); }
 #define SIMPLE_LOG_DEBUG(...) \
