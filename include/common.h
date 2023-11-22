@@ -1,6 +1,7 @@
 #ifndef SIMPLE_BASE_COMMON_H_
 #define SIMPLE_BASE_COMMON_H_
 
+#include <algorithm>
 #include <stdint.h>
 #include <string>
 
@@ -8,11 +9,7 @@
 extern "C" {
 #endif
 
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-#define min(a, b) (((a) > (b)) ? (b) : (a))
-#define swap(a, b) a ^= b, b ^ = a, a ^= b;
-
-#define SATURATE_CAST_UCHAR(X) (uint8_t) min(max((int)(X), 0), 255);
+#define SATURATE_CAST_UCHAR(X) (uint8_t) std::min(std::max((int)(X), 0), 255);
 
 #ifdef SIMPLE_EXPORTS
 #ifdef _MSC_VER
