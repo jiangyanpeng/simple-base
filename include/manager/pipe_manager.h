@@ -2,6 +2,7 @@
 #define SIMPLE_BASE_PIPE_MANAGER_H_
 
 #include "common.h"
+#include "log.h"
 
 #include <atomic>
 #include <condition_variable>
@@ -46,15 +47,17 @@ public:
     template <class F, class... Args>
     auto Commit(F&& f, Args&&... args) -> std::future<decltype(f(args...))> {
         if (!run_) {
-            throw runtime_error("commit on task, But thread pool is stopped.");
+            // throw runtime_error("commit on task, But thread pool is stopped.");
+            SIMPLE_LOG_ERROR("commit on task, But thread pool is stopped");
+            return {};
         }
         // 1. get the return value type of f function
         // 2. bind the function and package the parameters of the function
         // 3. push task/function in container
         // typename std::result_of<F(Args...)>::type;
         using RetType = decltype(f(args...));
-        auto task =
-            make_shared<packaged_task<RetType()>>(bind(forward<F>(f), forward<Args>(args)...));
+        auto task     = std::make_shared<std::packaged_task<RetType()>>(
+            std::bind(std::forward<F>(f), std::forward<Args>(args)...));
 
         std::future<RetType> future = task->get_future();
         {
@@ -70,8 +73,14 @@ public:
         return future;
     }
 
+    /// @brief Set Thread stop
+    void Stop() { run_ = false; }
+
     /// @brief Get number of idle threads
     int GetIdlCount() const { return idl_thread_num_; }
+
+    /// @brief Get All threads
+    std::vector<std::thread> GetThread() const { return pool_; }
 
     /// @brief Get number of threads
     int GetThreadCount() const { return pool_.size(); }
