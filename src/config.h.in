@@ -6,4 +6,4 @@
 
 #define SIMPLE_BASE_VERSION "@SIMPLE_BASE_VERSION@"
 
-#endif
+#endif // SIMPLE_BASE_CONFIG_H_IN_

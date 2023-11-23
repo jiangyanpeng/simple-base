@@ -37,7 +37,7 @@ public:
     std::shared_ptr<Base> Create(const std::string& key) {
         SIMPLE_LOG_DEBUG("will Create {} creator", key.c_str());
         if (!creator_map_.count(key)) {
-            SIMPLE_LOG_ERROR("Register type {} not register", key);
+            SIMPLE_LOG_ERROR("Register type {} not register", key.c_str());
             return nullptr;
         }
         return creator_map_[key]();

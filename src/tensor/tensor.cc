@@ -1,4 +1,5 @@
 #include "tensor/tensor.h"
+#include <string.h>
 
 namespace base {
 
@@ -165,7 +166,7 @@ std::shared_ptr<Tensor> Tensor::Clone() const {
         SIMPLE_LOG_ERROR("clone tensot failed");
         return nullptr;
     }
-    std::memcpy(this->GetData<void>(), replica->GetData<void>(), replica->GetSize());
+    memcpy(this->GetData<void>(), replica->GetData<void>(), replica->GetSize());
     return replica;
 }
 
