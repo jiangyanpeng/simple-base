@@ -7,27 +7,17 @@ SET(CMAKE_BUILD_TYPE "DEBUG")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 SET(CMAKE_CXX_FLAGS "${CAMKE_CXX_FLAGS} -std=c++11 -march=native -O3 -pthread")
 
-# IF(BUILD_USE_ENPU MATCHES ON)
-#     ADD_DEFINITIONS(-DUSE_ENPU)
-#     SET(USE_ENPU_MACRO "#define USE_ENPU\n")
-#     INCLUDE(cmake/enpu_config.cmake)
-#     MESSAGE(STATUS "Using ENPU_VERSION: ${ENPU_VERSION}")
-#     MESSAGE(STATUS "Using FORCE_32BIT_BUILD: ${FORCE_32BIT_BUILD}")
-# ELSE()
-#     INCLUDE(cmake/x86_config.cmake)
-#     MESSAGE(STATUS "Using C: ${CMAKE_C_COMPILER_VERSION}")
-# ENDIF()
-
-# IF(BUILD_USE_STB MATCHES ON)
-#     ADD_DEFINITIONS(-DSTB_IMAGE_IMPLEMENTATION)
-# 	ADD_DEFINITIONS(-DSTB_IMAGE_WRITE_IMPLEMENTATION)
-# ENDIF()
-
 ######## CONFIG OPTION ######
 OPTION(BUILD_USE_AVX           "Use AVX"                    OFF)
 OPTION(BUILD_TEST              "Build GooleTest"            OFF)
+OPTION(BUILD_LOG               "Build spdlog"               OFF)
 
 SET(SIMPLE_BASE_VERSION "1.0.5")
+IF(BUILD_LOG)
+    # SET(CONFIG_SIMPLE_BASE_ENABLE_SPDLOG 1)
+    ADD_DEFINITIONS(-DCONFIG_SIMPLE_BASE_ENABLE_SPDLOG)
+ENDIF(BUILD_LOG)
+
 CONFIGURE_FILE(
     "${PROJECT_SOURCE_DIR}/src/config.h.in"
     "${PROJECT_BINARY_DIR}/config.h")
@@ -85,6 +75,24 @@ function(base_download_dependency url branch lib_name work_directory)
         git clone --progress -q --depth=1 -b ${branch} ${url} ${lib_name}; fi"
         WORKING_DIRECTORY ${work_directory})
 endfunction()
+
+IF(BUILD_LOG)
+    base_download_dependency(
+        "https://github.com/gabime/spdlog.git"
+        v1.12.0
+        spdlog
+        ${PROJECT_SOURCE_DIR}/third_party)
+
+    CMAKE_POLICY(PUSH)
+    IF(NOT DEFINED SPDLOG_DIR)
+        SET(SPDLOG_DIR third_party/spdlog)
+    ENDIF()
+
+    ADD_SUBDIRECTORY(${SPDLOG_DIR})
+    SET(SPDLOG_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third_party/spdlog/include)
+    LIST(APPEND SPDLOG_LIBRARIES spdlog)
+    CMAKE_POLICY(POP)
+ENDIF(BUILD_LOG)
 
 ######### Note! Please Use GCC 5.0+ #######
 IF(BUILD_TEST)

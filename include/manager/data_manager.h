@@ -140,7 +140,7 @@ public:
     static MemoryType MemTypeStrToMemType(const std::string& type) {
         auto it = mem_type_map_.find(type);
         if (it == mem_type_map_.end()) {
-            SIMPLE_LOG_ERROR("unsupport mem type {}", type);
+            SIMPLE_LOG_ERROR("unsupport mem type {}", type.c_str());
             return MemoryType::M_MEM_ON_MEMORY_MAX;
         }
         return it->second;
