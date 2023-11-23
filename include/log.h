@@ -1,6 +1,6 @@
 #ifndef SIMPLE_BASE_LOG_H_
 #define SIMPLE_BASE_LOG_H_
-#include "config.h"
+
 #ifdef CONFIG_SIMPLE_BASE_ENABLE_SPDLOG
 #include <iostream>
 #include <memory>
@@ -69,15 +69,11 @@ public:
 
 static simple_logger::Logger& global_logger = simple_logger::Logger::get_logger();
 
-#ifndef NDEBUG
 #include <string.h>
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #define SIMPLE_LOG_DEBUG(...)                               \
     global_logger.debug("[{}:{}]", __FILENAME__, __LINE__); \
     global_logger.debug(__VA_ARGS__)
-#else
-#define SIMPLE_LOG_DEBUG(...)
-#endif
 
 #define SIMPLE_LOG_INFO(...) global_logger.info(__VA_ARGS__)
 #define SIMPLE_LOG_TRACE(...) global_logger.trace(__VA_ARGS__)
