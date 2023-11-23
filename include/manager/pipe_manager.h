@@ -80,7 +80,7 @@ public:
     int GetIdlCount() const { return idl_thread_num_; }
 
     /// @brief Get All threads
-    std::vector<std::thread> GetThread() const { return pool_; }
+    std::vector<std::thread>& GetThread() { return pool_; }
 
     /// @brief Get number of threads
     int GetThreadCount() const { return pool_.size(); }
