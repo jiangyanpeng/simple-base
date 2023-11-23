@@ -34,6 +34,10 @@ public:
 
     void log(std::string a_str) { this->console_logger->debug("{}", a_str); }
 
+    void set_level(spdlog::level::level_enum log_level) {
+        this->console_logger->set_level(log_level);
+    }
+
     template <typename... Args>
     void debug(const char* fmt, const Args... args) {
         this->console_logger->debug(fmt, args...);
