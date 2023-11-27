@@ -27,7 +27,7 @@ public:
     void Register(const std::string& key, Creator creator) {
         SIMPLE_LOG_DEBUG("will Register {} creator", key.c_str());
         if (creator_map_.count(key)) {
-            SIMPLE_LOG_WARN("Register type {} already register", key);
+            SIMPLE_LOG_WARN("Register type {} already register", key.c_str());
             return;
         }
         creator_map_[key] = creator;

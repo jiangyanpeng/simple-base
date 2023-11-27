@@ -31,6 +31,7 @@ std::shared_ptr<DataManager> DataManager::Create() const {
 }
 
 MStatus DataManager::SyncCache(bool io) {
+    UNUSED_WARN(io);
     return MStatus::M_OK;
 }
 

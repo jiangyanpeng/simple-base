@@ -36,8 +36,9 @@ Tensor::Tensor()
       size_{0},
       type_size_{0},
       shape_mode_{},
-      name_{""},
       elem_type_{},
+      name_{""},
+      mem_type_(M_MEM_ON_CPU),
       data_manager_{nullptr},
       use_cache_{false},
       init_done_{false} {}
@@ -52,8 +53,8 @@ Tensor::Tensor(const std::vector<uint32_t>& shape,
       size_{0},
       type_size_{TypeSize(elem_type_)},
       shape_mode_{layout},
-      name_{""},
       elem_type_{element_type},
+      name_{""},
       data_manager_{nullptr},
       use_cache_{false},
       init_done_{false} {
@@ -79,8 +80,8 @@ Tensor::Tensor(const void* data_ptr,
       size_{0},
       type_size_{TypeSize(elem_type_)},
       shape_mode_{layout},
-      name_{""},
       elem_type_{element_type},
+      name_{""},
       data_manager_{nullptr},
       use_cache_{true},
       init_done_{false} {
@@ -101,12 +102,17 @@ Tensor::Tensor(const std::shared_ptr<DataManager>& data_mgr,
                const MemoryType& mem_type,
                const DataType& element_type)
     : shape_(shape),
-      name_(""),
+      stride_{0},
+      nscalar_{0},
+      size_{0},
+      type_size_{TypeSize(elem_type_)},
       shape_mode_{layout},
       elem_type_(element_type),
-      init_done_(false),
-      type_size_(TypeSize(elem_type_)),
-      data_manager_(data_mgr) {
+      name_(""),
+      mem_type_(mem_type),
+      data_manager_(data_mgr),
+      use_cache_{false},
+      init_done_(false) {
     if (nullptr == data_manager_) {
         SIMPLE_LOG_DEBUG("construct tensor failed, input data manager nullptr");
         return;

@@ -219,13 +219,14 @@ private:
     MStatus InitImageParamters();
     MStatus CreatDataManager(const MemoryType mem_type);
 
-    uint32_t number_{0u};
-    uint32_t width_{0u};
-    uint32_t height_{0u};
-    uint32_t channel_{0u};
-    uint32_t stride_{0u};
-    uint32_t nscalar_{0u};
-    uint32_t type_size_{0u};
+private:
+    uint32_t number_{0};
+    uint32_t width_{0};
+    uint32_t height_{0};
+    uint32_t channel_{0};
+    uint32_t stride_{0};
+    uint32_t nscalar_{0};
+    uint32_t type_size_{0};
 
     TimeStamp time_stamp_;
     PixelFormat pixel_format_;

@@ -3,9 +3,11 @@ PROJECT(simple.base)
 
 ######## COMPILE #######
 SET(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-SET(CMAKE_BUILD_TYPE "DEBUG")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
+SET(CMAKE_VERBOSE_MAKEFILE TRUE)
+SET(CMAKE_BUILD_TYPE "Release")
 SET(CMAKE_CXX_FLAGS "${CAMKE_CXX_FLAGS} -std=c++11 -march=native -O3 -pthread")
+INCLUDE(cmake/Globals.cmake)
+INCLUDE(cmake/Utils.cmake)
 
 ######## CONFIG OPTION ######
 OPTION(BUILD_USE_AVX           "Use AVX"                    OFF)
@@ -60,22 +62,6 @@ IF(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
 ENDIF()
 
 ####### UINT TEST   ##########
-SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
-#[[
-    @brief  Download dependency library from git repository.
-    @param  url - git repository address
-    @param  branch - the branch or tag name
-    @param  lib_name - the expected local name
-]]
-function(base_download_dependency url branch lib_name work_directory)
-    execute_process(COMMAND bash "-c" "if [ ! -d ${work_directory} ];\
-        then mkdir -p ${work_directory}; fi")
-
-    execute_process(COMMAND bash "-c" "if [ ! -d ${lib_name} ]; then \
-        git clone --progress -q --depth=1 -b ${branch} ${url} ${lib_name}; fi"
-        WORKING_DIRECTORY ${work_directory})
-endfunction()
-
 IF(BUILD_LOG)
     base_download_dependency(
         "https://github.com/gabime/spdlog.git"
