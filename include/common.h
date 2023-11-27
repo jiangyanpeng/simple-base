@@ -11,6 +11,8 @@ extern "C" {
 
 #define SATURATE_CAST_UCHAR(X) (uint8_t) std::min(std::max((int)(X), 0), 255);
 
+#define UNUSED_WARN(X) (void)X;
+
 #ifdef SIMPLE_EXPORTS
 #ifdef _MSC_VER
 #define EXPORT_API __declspec(dllexport)

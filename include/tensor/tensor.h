@@ -80,7 +80,7 @@ public:
     /// @note
     /// shape of tensor with index
     inline uint32_t GetShape(uint32_t idx) const {
-        if (idx < 0 || idx >= shape_.size()) {
+        if (idx >= (uint32_t)shape_.size()) {
             SIMPLE_LOG_ERROR("index out of range, {} vs {}", idx, shape_.size());
             return -1;
         }

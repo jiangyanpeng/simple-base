@@ -64,9 +64,9 @@ Image::Image(const uint32_t width,
              const MemoryType mem_type,
              const bool use_cache,
              const bool mem_alloced)
-    : width_{width},
+    : number_{number},
+      width_{width},
       height_{height},
-      number_{number},
       pixel_format_{pixel_format},
       use_cache_{use_cache} {
 
@@ -115,7 +115,9 @@ Image::Image(const uint32_t width,
 }
 
 MStatus Image::ImageSplit(const uint32_t idx, Image& image_out) const {
-    SIMPLE_LOG_WARN("now can't support ImageSplit");
+    SIMPLE_LOG_WARN("now can't support ImageSplit for {}", idx);
+    UNUSED_WARN(idx);
+    UNUSED_WARN(image_out);
     return MStatus::M_OK;
 }
 
@@ -184,6 +186,7 @@ MStatus Image::InitImageParamters() {
         stride_    = (chanel_on_stide) ? stride_ * channel_ : stride_;
         nscalar_   = height_ * stride_;
         nscalar_   = (chanel_on_stide) ? nscalar_ : nscalar_ * channel_;
+        return true;
     };
 
     MStatus m_status = MStatus::M_OK;

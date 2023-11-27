@@ -9,6 +9,7 @@
 int main() {
     base::DataManager manager;
     void* data = manager.Malloc(100);
+    std::cout << "data = " << data << std::endl;
     SIMPLE_LOG_INFO("hello world");
     SIMPLE_LOG_DEBUG("hello world");
     SIMPLE_LOG_WARN("hello world");

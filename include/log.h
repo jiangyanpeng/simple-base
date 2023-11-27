@@ -14,7 +14,7 @@ private:
         try {
             this->console_logger = spdlog::stdout_color_mt("console");
             spdlog::set_level(spdlog::level::debug);
-            spdlog::set_pattern("[%p-%t %Y-%m-%d %H:%M:%S.%e.%f] [%L] %v");
+            spdlog::set_pattern("[%P-%t %Y-%m-%d %H:%M:%S.%e.%f] [%L] %v");
         } catch (const spdlog::spdlog_ex& ex) {
             std::cerr << "spdlog::spdlog create faile" << std::endl;
             exit(-1);
