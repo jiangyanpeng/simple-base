@@ -14,7 +14,7 @@
 #include <vector>
 
 #define THREADPOOL_MAX_NUM 16
-//#define  THREADPOOL_AUTO_GROW
+// #define  THREADPOOL_AUTO_GROW
 
 /// @brief Thread pool
 /// which can submit anonymous function executions of variable parameter
@@ -48,7 +48,7 @@ public:
     auto Commit(F&& f, Args&&... args) -> std::future<decltype(f(args...))> {
         if (!run_) {
             // throw runtime_error("commit on task, But thread pool is stopped.");
-            SIMPLE_LOG_ERROR("commit on task, But thread pool is stopped");
+            SIMPLE_LOG_ERROR("commit on task, But thread pool is stopped\n");
             return {};
         }
         // 1. get the return value type of f function

@@ -4,12 +4,11 @@
 #include "common.h"
 #include "log.h"
 
+#include <memory>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <uchar.h>
-
-#include <memory>
 #include <unordered_map>
 
 namespace base {
@@ -46,8 +45,8 @@ inline T_ AlignDownN(const T_ v, uint32_t r) {
 #define ALIGN_UP_2(x) AlignUp2N(x, 1)
 #define ALIGN_DOWN_2(x) AlignDownN(x, 1)
 
-#define IS_ALIGN_16(x) (((x)&0xF) == 0x0)
-#define IS_ALIGN_2(x) (((x)&0x1) == 0x0)
+#define IS_ALIGN_16(x) (((x) & 0xF) == 0x0)
+#define IS_ALIGN_2(x) (((x) & 0x1) == 0x0)
 
 // the alignment of all the allocated buffers
 #if AVX512
@@ -140,7 +139,7 @@ public:
     static MemoryType MemTypeStrToMemType(const std::string& type) {
         auto it = mem_type_map_.find(type);
         if (it == mem_type_map_.end()) {
-            SIMPLE_LOG_ERROR("unsupport mem type {}", type.c_str());
+            SIMPLE_LOG_ERROR("unsupport mem type %s\n", type.c_str());
             return MemoryType::M_MEM_ON_MEMORY_MAX;
         }
         return it->second;

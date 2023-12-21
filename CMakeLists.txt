@@ -1,7 +1,10 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
-PROJECT(simple.base)
+PROJECT("simple.base" C CXX)
 
-######## COMPILE #######
+########### VERSION ##########
+SET(SIMPLE_BASE_VERSION "3.0.0")
+
+########### COMPILE ##########
 SET(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 SET(CMAKE_VERBOSE_MAKEFILE TRUE)
 SET(CMAKE_BUILD_TYPE "Release")
@@ -12,11 +15,9 @@ INCLUDE(cmake/Utils.cmake)
 ######## CONFIG OPTION ######
 OPTION(BUILD_USE_AVX           "Use AVX"                    OFF)
 OPTION(BUILD_TEST              "Build GooleTest"            OFF)
-OPTION(BUILD_LOG               "Build spdlog"               OFF)
+OPTION(BUILD_LOG               "Build simplelog"            OFF)
 
-SET(SIMPLE_BASE_VERSION "2.0.2")
 IF(BUILD_LOG)
-    # SET(CONFIG_SIMPLE_BASE_ENABLE_SPDLOG 1)
     ADD_DEFINITIONS(-DCONFIG_SIMPLE_BASE_ENABLE_SPDLOG)
 ENDIF(BUILD_LOG)
 
@@ -60,25 +61,6 @@ IF(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
         ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
         LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" )
 ENDIF()
-
-####### UINT TEST   ##########
-IF(BUILD_LOG)
-    base_download_dependency(
-        "https://github.com/gabime/spdlog.git"
-        v1.12.0
-        spdlog
-        ${PROJECT_SOURCE_DIR}/third_party)
-
-    CMAKE_POLICY(PUSH)
-    IF(NOT DEFINED SPDLOG_DIR)
-        SET(SPDLOG_DIR third_party/spdlog)
-    ENDIF()
-
-    ADD_SUBDIRECTORY(${SPDLOG_DIR})
-    SET(SPDLOG_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third_party/spdlog/include)
-    LIST(APPEND SPDLOG_LIBRARIES spdlog)
-    CMAKE_POLICY(POP)
-ENDIF(BUILD_LOG)
 
 ######### Note! Please Use GCC 5.0+ #######
 IF(BUILD_TEST)

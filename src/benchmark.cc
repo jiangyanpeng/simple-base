@@ -1,4 +1,5 @@
 #include "benchmark.h"
+
 #include "log.h"
 
 #include <algorithm>
@@ -90,7 +91,7 @@ BenchmarkInstance::CreateBenchmark(const uint32_t target_num,
                                    const std::string& Benchmark_name) {
     if (target_name.size() != static_cast<size_t>(target_num)) {
         SIMPLE_LOG_ERROR(
-            "BenchmarkInstance::CreateBenchmark faile, {}vs{}", target_name.size(), target_num);
+            "BenchmarkInstance::CreateBenchmark faile, %ivs%i", target_name.size(), target_num);
     }
 
     BenchmarkInstance* instance = BenchmarkInstance::GetInstance();
@@ -130,7 +131,7 @@ void BenchmarkInstance::GetReport(std::string file_prefix) {
     std::string file_name = file_prefix + "_benchmark_" + GetNowTime() + ".csv";
     std::ofstream save_file(file_name.c_str(), std::ios_base::trunc | std::ios_base::out);
     if (!save_file.is_open()) {
-        SIMPLE_LOG_ERROR("{} path can't open", file_name.c_str());
+        SIMPLE_LOG_ERROR("%s path can't open", file_name.c_str());
         return;
     }
 

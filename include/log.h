@@ -1,97 +1,111 @@
 #ifndef SIMPLE_BASE_LOG_H_
 #define SIMPLE_BASE_LOG_H_
 
-#ifdef CONFIG_SIMPLE_BASE_ENABLE_SPDLOG
-#include <iostream>
-#include <memory>
-#include <spdlog/spdlog.h>
-namespace simple_logger {
-class Logger {
-private:
-    std::shared_ptr<spdlog::logger> console_logger;
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/time.h>
+#include <time.h>
 
-    Logger() {
-        try {
-            this->console_logger = spdlog::stdout_color_mt("console");
-            spdlog::set_level(spdlog::level::debug);
-            spdlog::set_pattern("[%P-%t %Y-%m-%d %H:%M:%S.%e.%f] [%L] %v");
-        } catch (const spdlog::spdlog_ex& ex) {
-            std::cerr << "spdlog::spdlog create faile" << std::endl;
-            exit(-1);
-        }
-    }
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
 
-    Logger(Logger const&) = delete;
-    void operator=(Logger const&) = delete;
-
+class Loger {
 public:
-    ~Logger() {}
+    typedef enum {
+        DEBUG,
+        INFO,
+        WARNING,
+        ERROR,
+    } LogLevel;
 
-    static Logger& get_logger() {
-        static Logger new_loger;
-        return new_loger;
+    static Loger& Instance() {
+        static Loger loger;
+        return loger;
     }
 
-    void log(std::string a_str) { this->console_logger->debug("{}", a_str); }
+    Loger() : log_level_(WARNING), log_tag_("") {}
+    void set_log_level(LogLevel log_level) { log_level_ = log_level; }
+    void set_log_tag(const char* tag) {
+        if (tag != NULL)
+            log_tag_ = tag;
+    }
+    void
+    log(LogLevel level, const char* file, const char* function, int line, const char* fmt, ...) {
+        const int kLogHanderSize = 1024;
+        if (level < log_level_)
+            return;
+        char log_header[kLogHanderSize];
+#ifdef __ANDROID__
+        snprintf(
+            log_header, kLogHanderSize, "[%s:%s(%d)] %s", function, FindFileName(file), line, fmt);
+#else
+        struct timeval tv;
+        struct tm* ptm;
+        size_t offset                      = 0;
+        static const char* log_level_str[] = {"D", "I", "W", "E"};
 
-    void set_level(spdlog::level::level_enum log_level) {
-        this->console_logger->set_level(log_level);
+        gettimeofday(&tv, NULL);
+        ptm    = localtime(&tv.tv_sec);
+        offset = strftime(log_header, kLogHanderSize, "%m-%d %H:%M:%S", ptm);
+        snprintf(log_header + offset,
+                 kLogHanderSize,
+                 ".%03ld %s %s [%s:%s(%d)] %s",
+                 tv.tv_usec / 1000,
+                 log_tag_,
+                 log_level_str[level],
+                 function,
+                 FindFileName(file),
+                 line,
+                 fmt);
+#endif
+
+        va_list ap;
+        va_start(ap, fmt);
+#ifdef __ANDROID__
+        __android_log_vprint(ANDROID_LOG_DEBUG + level, log_tag_, log_header, ap);
+#else
+        vprintf(log_header, ap);
+#endif
+        va_end(ap);
     }
 
-    template <typename... Args>
-    void debug(const char* fmt, const Args... args) {
-        this->console_logger->debug(fmt, args...);
-    }
+private:
+    LogLevel log_level_;
+    const char* log_tag_;
 
-    template <typename... Args>
-    void info(const char* fmt, const Args... args) {
-        this->console_logger->info(fmt, args...);
-    }
-
-    template <typename... Args>
-    void trace(const char* fmt, const Args... args) {
-        this->console_logger->trace(fmt, args...);
-    }
-
-    template <typename... Args>
-    void warn(const char* fmt, const Args... args) {
-        this->console_logger->warn(fmt, args...);
-    }
-
-    template <typename... Args>
-    void error(const char* fmt, const Args... args) {
-        this->console_logger->error(fmt, args...);
-    }
-
-    template <typename... Args>
-    void critical(const char* fmt, const Args... args) {
-        this->console_logger->critical(fmt, args...);
-        exit(-1);
+    const char* FindFileName(const char* file) {
+        int i = strlen(file);
+        while (i >= 0 && file[i] != '/')
+            --i;
+        return file + i + 1;
     }
 };
-} // namespace simple_logger
 
-static simple_logger::Logger& global_logger = simple_logger::Logger::get_logger();
+inline void set_level(Loger::LogLevel level) {
+    Loger::Instance().set_log_level(level);
+}
 
-#include <string.h>
-#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-#define SIMPLE_LOG_DEBUG(...)                               \
-    global_logger.debug("[{}:{}]", __FILENAME__, __LINE__); \
-    global_logger.debug(__VA_ARGS__)
+inline void set_tag(const char* tag) {
+    Loger::Instance().set_log_tag(tag);
+}
 
-#define SIMPLE_LOG_INFO(...) global_logger.info(__VA_ARGS__)
-#define SIMPLE_LOG_TRACE(...) global_logger.trace(__VA_ARGS__)
-#define SIMPLE_LOG_WARN(...) global_logger.warn(__VA_ARGS__)
-#define SIMPLE_LOG_ERROR(...)                               \
-    global_logger.error("[{}:{}]", __FILENAME__, __LINE__); \
-    global_logger.error(__VA_ARGS__)
 
+#ifdef CONFIG_SIMPLE_BASE_ENABLE_SPDLOG
+#define SIMPLE_LOG_DEBUG(fmt, ...) \
+    Loger::Instance().log(Loger::DEBUG, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
+#define SIMPLE_LOG_INFO(fmt, ...) \
+    Loger::Instance().log(Loger::INFO, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
+#define SIMPLE_LOG_WARN(fmt, ...) \
+    Loger::Instance().log(Loger::WARNING, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
+#define SIMPLE_LOG_ERROR(fmt, ...) \
+    Loger::Instance().log(Loger::ERROR, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 #else
-#define SIMPLE_LOG_TRACE(...)
-#define SIMPLE_LOG_DEBUG(...)
-#define SIMPLE_LOG_INFO(...)
-#define SIMPLE_LOG_WARN(...)
-#define SIMPLE_LOG_ERROR(...)
-#endif // CONFIG_SIMPLE_BASE_ENABLE_SPDLOG
+#define SIMPLE_LOG_DEBUG(fmt, ...)
+#define SIMPLE_LOG_INFO(fmt, ...)
+#define SIMPLE_LOG_WARN(fmt, ...)
+#define SIMPLE_LOG_ERROR(fmt, ...)
+#endif
 
 #endif // SIMPLE_BASE_LOG_H_

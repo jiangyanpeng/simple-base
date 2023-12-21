@@ -25,9 +25,9 @@ public:
     }
 
     void Register(const std::string& key, Creator creator) {
-        SIMPLE_LOG_DEBUG("will Register {} creator", key.c_str());
+        SIMPLE_LOG_DEBUG("will register %s creator\n", key.c_str());
         if (creator_map_.count(key)) {
-            SIMPLE_LOG_WARN("Register type {} already register", key.c_str());
+            SIMPLE_LOG_WARN("type %s already registered\n", key.c_str());
             return;
         }
         creator_map_[key] = creator;
@@ -35,9 +35,9 @@ public:
     }
 
     std::shared_ptr<Base> Create(const std::string& key) {
-        SIMPLE_LOG_DEBUG("will Create {} creator", key.c_str());
+        SIMPLE_LOG_DEBUG("will create %s creator\n", key.c_str());
         if (!creator_map_.count(key)) {
-            SIMPLE_LOG_ERROR("Register type {} not register", key.c_str());
+            SIMPLE_LOG_ERROR("type %s not register\n", key.c_str());
             return nullptr;
         }
         return creator_map_[key]();
