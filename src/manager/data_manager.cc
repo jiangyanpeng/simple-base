@@ -10,7 +10,7 @@ void* DataManager::Malloc(const uint32_t size) {
 
 void* DataManager::Setptr(void* ptr, uint32_t size) {
     if (ptr == nullptr || size == 0) {
-        SIMPLE_LOG_ERROR("Setptr err {}", size);
+        SIMPLE_LOG_ERROR("Setptr err %i\n", size);
         return nullptr;
     }
 

@@ -1,4 +1,5 @@
 #include "tensor/tensor.h"
+
 #include <string.h>
 
 namespace base {
@@ -23,7 +24,7 @@ static uint32_t TypeSize(DataType elem_type) {
             size = 4U;
             break;
         default:
-            SIMPLE_LOG_ERROR("can't support {}", static_cast<int>(elem_type));
+            SIMPLE_LOG_ERROR("can't support %i\n", static_cast<int>(elem_type));
             break;
     }
     return size;
