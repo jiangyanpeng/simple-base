@@ -38,8 +38,13 @@ public:
         //     return;
         char log_header[kLogHanderSize];
 #ifdef __ANDROID__
-        snprintf(
-            log_header, kLogHanderSize, "[%s:%s(%d)] %s", function, FindFileName(file), line, fmt);
+        snprintf(log_header,
+                 kLogHanderSize,
+                 "[%s]:[%s(%d)] %s",
+                 function,
+                 FindFileName(file),
+                 line,
+                 fmt);
 #else
         struct timeval tv;
         struct tm* ptm;
@@ -51,7 +56,7 @@ public:
         offset = strftime(log_header, kLogHanderSize, "%m-%d %H:%M:%S", ptm);
         snprintf(log_header + offset,
                  kLogHanderSize,
-                 ".%03ld %s %s [%s:%s(%d)] %s",
+                 ".%03ld %s %s [%s]:[%s(%d)] %s",
                  tv.tv_usec / 1000,
                  log_tag_,
                  log_level_str[level],
