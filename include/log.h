@@ -25,7 +25,7 @@ public:
         return loger;
     }
 
-    Loger() : log_level_(WARNING), log_tag_("") {}
+    Loger() : log_level_(DEBUG), log_tag_("") {}
     void set_log_level(LogLevel log_level) { log_level_ = log_level; }
     void set_log_tag(const char* tag) {
         if (tag != NULL)
@@ -34,8 +34,8 @@ public:
     void
     log(LogLevel level, const char* file, const char* function, int line, const char* fmt, ...) {
         const int kLogHanderSize = 1024;
-        if (level < log_level_)
-            return;
+        // if (level < log_level_)
+        //     return;
         char log_header[kLogHanderSize];
 #ifdef __ANDROID__
         snprintf(
@@ -92,7 +92,7 @@ inline void set_tag(const char* tag) {
 }
 
 
-#ifdef CONFIG_SIMPLE_BASE_ENABLE_SPDLOG
+// #ifdef CONFIG_SIMPLE_BASE_ENABLE_SPDLOG
 #define SIMPLE_LOG_DEBUG(fmt, ...) \
     Loger::Instance().log(Loger::DEBUG, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 #define SIMPLE_LOG_INFO(fmt, ...) \
@@ -101,11 +101,11 @@ inline void set_tag(const char* tag) {
     Loger::Instance().log(Loger::WARNING, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 #define SIMPLE_LOG_ERROR(fmt, ...) \
     Loger::Instance().log(Loger::ERROR, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
-#else
-#define SIMPLE_LOG_DEBUG(fmt, ...)
-#define SIMPLE_LOG_INFO(fmt, ...)
-#define SIMPLE_LOG_WARN(fmt, ...)
-#define SIMPLE_LOG_ERROR(fmt, ...)
-#endif
+// #else
+// #define SIMPLE_LOG_DEBUG(fmt, ...)
+// #define SIMPLE_LOG_INFO(fmt, ...)
+// #define SIMPLE_LOG_WARN(fmt, ...)
+// #define SIMPLE_LOG_ERROR(fmt, ...)
+// #endif
 
 #endif // SIMPLE_BASE_LOG_H_
