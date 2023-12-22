@@ -2,13 +2,14 @@
 #include "log.h"
 #include "manager/data_manager.h"
 #include "register.h"
+#include "common.h"
 
 #include <iostream>
 
 int main() {
     base::DataManager manager;
     void* data = manager.Malloc(100);
-
+    UNUSED_WARN(data);
     set_level(Loger::INFO);
     SIMPLE_LOG_INFO("manage_data: %p\n", data);
     SIMPLE_LOG_INFO("hello world\n");

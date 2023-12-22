@@ -25,21 +25,27 @@ public:
         return loger;
     }
 
-    Loger() : log_level_(WARNING), log_tag_("") {}
+    Loger() : log_level_(DEBUG), log_tag_("") {}
     void set_log_level(LogLevel log_level) { log_level_ = log_level; }
     void set_log_tag(const char* tag) {
         if (tag != NULL)
             log_tag_ = tag;
     }
+    void close_log() { close_log_ = true; }
     void
     log(LogLevel level, const char* file, const char* function, int line, const char* fmt, ...) {
         const int kLogHanderSize = 1024;
-        if (level < log_level_)
+        if (level < log_level_ || close_log_)
             return;
         char log_header[kLogHanderSize];
 #ifdef __ANDROID__
-        snprintf(
-            log_header, kLogHanderSize, "[%s:%s(%d)] %s", function, FindFileName(file), line, fmt);
+        snprintf(log_header,
+                 kLogHanderSize,
+                 "[%s]:[%s(%d)] %s",
+                 function,
+                 FindFileName(file),
+                 line,
+                 fmt);
 #else
         struct timeval tv;
         struct tm* ptm;
@@ -51,7 +57,7 @@ public:
         offset = strftime(log_header, kLogHanderSize, "%m-%d %H:%M:%S", ptm);
         snprintf(log_header + offset,
                  kLogHanderSize,
-                 ".%03ld %s %s [%s:%s(%d)] %s",
+                 ".%03ld %s %s [%s]:[%s(%d)] %s",
                  tv.tv_usec / 1000,
                  log_tag_,
                  log_level_str[level],
@@ -74,6 +80,7 @@ public:
 private:
     LogLevel log_level_;
     const char* log_tag_;
+    bool close_log_{false};
 
     const char* FindFileName(const char* file) {
         int i = strlen(file);
@@ -86,13 +93,15 @@ private:
 inline void set_level(Loger::LogLevel level) {
     Loger::Instance().set_log_level(level);
 }
-
+inline void close_level() {
+    Loger::Instance().close_log();
+}
 inline void set_tag(const char* tag) {
     Loger::Instance().set_log_tag(tag);
 }
 
 
-#ifdef CONFIG_SIMPLE_BASE_ENABLE_SPDLOG
+// #ifdef CONFIG_SIMPLE_BASE_ENABLE_SPDLOG
 #define SIMPLE_LOG_DEBUG(fmt, ...) \
     Loger::Instance().log(Loger::DEBUG, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 #define SIMPLE_LOG_INFO(fmt, ...) \
@@ -101,11 +110,11 @@ inline void set_tag(const char* tag) {
     Loger::Instance().log(Loger::WARNING, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 #define SIMPLE_LOG_ERROR(fmt, ...) \
     Loger::Instance().log(Loger::ERROR, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
-#else
-#define SIMPLE_LOG_DEBUG(fmt, ...)
-#define SIMPLE_LOG_INFO(fmt, ...)
-#define SIMPLE_LOG_WARN(fmt, ...)
-#define SIMPLE_LOG_ERROR(fmt, ...)
-#endif
+// #else
+// #define SIMPLE_LOG_DEBUG(fmt, ...)
+// #define SIMPLE_LOG_INFO(fmt, ...)
+// #define SIMPLE_LOG_WARN(fmt, ...)
+// #define SIMPLE_LOG_ERROR(fmt, ...)
+// #endif
 
 #endif // SIMPLE_BASE_LOG_H_
