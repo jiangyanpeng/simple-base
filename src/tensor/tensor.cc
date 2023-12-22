@@ -192,4 +192,30 @@ bool Tensor::operator!=(const Tensor& other) {
     return (*this == other) ? false : true;
 }
 
+std::shared_ptr<Tensor> transpose(const std::shared_ptr<Tensor>& tensor) {
+    if (tensor->GetShape().size() != 4 || tensor->GetShape(0) != 1 || tensor->GetShape(1) != 1) {
+        SIMPLE_LOG_ERROR("tensor transpose only support 2D matrix\n");
+        return nullptr;
+    }
+    std::vector<uint32_t> shape{1, 1, tensor->GetShape(3), tensor->GetShape(2)};
+    auto result = std::make_shared<Tensor>(
+        shape, tensor->GetShapeMode(), tensor->GetMemType(), tensor->GetElemType());
+    if (!result) {
+        SIMPLE_LOG_ERROR("transpose failed, malloc [%i, %i, %i, %i] data failed\n",
+                         shape[0],
+                         shape[1],
+                         shape[2],
+                         shape[3]);
+        return nullptr;
+    }
+
+    const int rows = tensor->GetShape(2), cols = tensor->GetShape(3);
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            result->GetData<float>(0)[j * cols + i] = tensor->GetData<float>(0)[i * rows + j];
+        }
+    }
+    return result;
+}
+
 } // namespace base

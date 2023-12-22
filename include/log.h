@@ -31,11 +31,12 @@ public:
         if (tag != NULL)
             log_tag_ = tag;
     }
+    void close_log() { close_log_ = true; }
     void
     log(LogLevel level, const char* file, const char* function, int line, const char* fmt, ...) {
         const int kLogHanderSize = 1024;
-        // if (level < log_level_)
-        //     return;
+        if (level < log_level_ || close_log_)
+            return;
         char log_header[kLogHanderSize];
 #ifdef __ANDROID__
         snprintf(log_header,
@@ -79,6 +80,7 @@ public:
 private:
     LogLevel log_level_;
     const char* log_tag_;
+    bool close_log_{false};
 
     const char* FindFileName(const char* file) {
         int i = strlen(file);
@@ -91,7 +93,9 @@ private:
 inline void set_level(Loger::LogLevel level) {
     Loger::Instance().set_log_level(level);
 }
-
+inline void close_level() {
+    Loger::Instance().close_log();
+}
 inline void set_tag(const char* tag) {
     Loger::Instance().set_log_tag(tag);
 }

@@ -130,7 +130,12 @@ public:
     /// @brief GetShapeMode of tensor
     /// @note
     /// layout of tensor, now only support NCHW or NHWC
-    inline const std::string& GetShapeMode() const { return TensorLayoutStr[shape_mode_]; }
+    inline TensorLayout GetShapeMode() const { return shape_mode_; }
+
+    /// @brief GetShapeModeStr of tensor
+    /// @note
+    /// layout of tensor, now only support NCHW or NHWC
+    inline const std::string& GetShapeModeStr() const { return TensorLayoutStr[shape_mode_]; }
 
     /// @brief GetName of tensor
     /// @note
@@ -222,9 +227,33 @@ inline std::string LogTensor(std::string prefix, const Tensor& tensor) {
             tensor.GetStride(),
             tensor.GetScalar(),
             tensor.GetMemTypeStr().c_str(),
-            tensor.GetShapeMode().c_str(),
+            tensor.GetShapeModeStr().c_str(),
             reinterpret_cast<uint64_t>(tensor.GetData<uint8_t>(0)));
     return std::string(ret);
 }
+
+// Tensor API
+
+/// @brief reshape tensor, and 2 Dims of shape as transpose
+/// @param tensor input tensor of shape 4Dims
+/// @return reshape of tensor
+std::shared_ptr<Tensor> reshape(const std::shared_ptr<Tensor>& tensor);
+
+/// @brief Transpose matrix operation of 2D
+/// @param tensor input tensor of shape 2Dims
+/// @return transpose of tensor, as swap rows and cols of matrix
+/// @note now supports two dimensions
+/// eg: {1, 1, rows, cols}-->{1, 1, cols, rows}
+std::shared_ptr<Tensor> transpose(const std::shared_ptr<Tensor>& tensor);
+
+/// @brief innerproduct tensor as left * right + bias
+/// @param left left tensor
+/// @param right right tensor
+/// @param bias add bias of tensor
+/// @return return left * right + bias
+/// @note now supports two dimensions
+std::shared_ptr<Tensor> innerproduct(const std::shared_ptr<Tensor>& left,
+                                     const std::shared_ptr<Tensor>& right,
+                                     const std::shared_ptr<Tensor>& bias);
 } // namespace base
 #endif // SIMPLE_BASE_TENSOR_H_
