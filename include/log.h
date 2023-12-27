@@ -1,12 +1,13 @@
 #ifndef SIMPLE_BASE_LOG_H_
 #define SIMPLE_BASE_LOG_H_
 
+#include "common.h"
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
-
 #ifdef __ANDROID__
 #include <android/log.h>
 #endif
@@ -25,19 +26,21 @@ public:
         return loger;
     }
 
-    Loger() : log_level_(DEBUG), log_tag_("") {}
+    Loger() : log_level_(DEBUG), log_tag_("SIMPLE-SDK") {}
     void set_log_level(LogLevel log_level) { log_level_ = log_level; }
     void set_log_tag(const char* tag) {
         if (tag != NULL)
             log_tag_ = tag;
     }
-    void close_log() { close_log_ = true; }
+    void close_log(bool flag) { close_log_ = flag; }
     void
     log(LogLevel level, const char* file, const char* function, int line, const char* fmt, ...) {
         const int kLogHanderSize = 1024;
         if (level < log_level_ || close_log_)
             return;
+
         char log_header[kLogHanderSize];
+
 #ifdef __ANDROID__
         snprintf(log_header,
                  kLogHanderSize,
@@ -50,21 +53,42 @@ public:
         struct timeval tv;
         struct tm* ptm;
         size_t offset                      = 0;
-        static const char* log_level_str[] = {"D", "I", "W", "E"};
+        static const char* log_level_str[] = {"DEBUG", "INFO", "WARN", "ERROR"};
 
         gettimeofday(&tv, NULL);
         ptm    = localtime(&tv.tv_sec);
-        offset = strftime(log_header, kLogHanderSize, "%m-%d %H:%M:%S", ptm);
-        snprintf(log_header + offset,
-                 kLogHanderSize,
-                 ".%03ld %s %s [%s]:[%s(%d)] %s",
-                 tv.tv_usec / 1000,
-                 log_tag_,
-                 log_level_str[level],
-                 function,
-                 FindFileName(file),
-                 line,
-                 fmt);
+        offset = strftime(log_header, kLogHanderSize, "[%m-%d %H:%M:%S] ", ptm);
+        offset += snprintf(log_header + offset, sizeof(log_header) - offset, "%s ", log_tag_);
+        if (level == LogLevel::ERROR) {
+            offset += snprintf(log_header + offset,
+                               sizeof(log_header) - offset,
+                               "[\033[31m%s\033[0m] ",
+                               log_level_str[level]);
+        } else if (level == LogLevel::INFO) {
+            offset += snprintf(log_header + offset,
+                               sizeof(log_header) - offset,
+                               "[\033[35m%s\033[0m] ",
+                               log_level_str[level]);
+        } else if (level == LogLevel::WARNING) {
+            offset += snprintf(log_header + offset,
+                               sizeof(log_header) - offset,
+                               "[\033[33m%s\033[0m] ",
+                               log_level_str[level]);
+        } else {
+            offset += snprintf(log_header + offset,
+                               sizeof(log_header) - offset,
+                               "[\033[35m%s\033[0m] ",
+                               log_level_str[level]);
+        }
+
+        offset += snprintf(log_header + offset,
+                           sizeof(log_header) - offset,
+                           "[%s:%d]:%s\n",
+                           FindFileName(file),
+                           line,
+                           fmt);
+
+        UNUSED_WARN(function);
 #endif
 
         va_list ap;
@@ -93,8 +117,8 @@ private:
 inline void set_level(Loger::LogLevel level) {
     Loger::Instance().set_log_level(level);
 }
-inline void close_level() {
-    Loger::Instance().close_log();
+inline void close_level(bool flag = true) {
+    Loger::Instance().close_log(flag);
 }
 inline void set_tag(const char* tag) {
     Loger::Instance().set_log_tag(tag);

@@ -48,7 +48,7 @@ public:
     auto Commit(F&& f, Args&&... args) -> std::future<decltype(f(args...))> {
         if (!run_) {
             // throw runtime_error("commit on task, But thread pool is stopped.");
-            SIMPLE_LOG_ERROR("commit on task, But thread pool is stopped\n");
+            SIMPLE_LOG_ERROR("commit on task, But thread pool is stopped");
             return {};
         }
         // 1. get the return value type of f function

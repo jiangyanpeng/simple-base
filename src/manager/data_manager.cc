@@ -14,19 +14,24 @@ void* DataManager::Malloc(const uint32_t size) {
 
 void* DataManager::Setptr(void* ptr, uint32_t size) {
     if (ptr == nullptr || size == 0) {
-        SIMPLE_LOG_ERROR("Setptr err %i\n", size);
+        SIMPLE_LOG_ERROR("Setptr err %i", size);
         return nullptr;
     }
-
+    SetOwer(false);
     data_ = static_cast<uint8_t*>(ptr);
     size_ = size;
     return data_;
 }
 
-void DataManager::Free() {
-    if (!is_owner_) {
+void DataManager::Free(void* p) {
+    SIMPLE_LOG_DEBUG("DataManager::Free is_owner: %s, input: %p, data: %p",
+                     is_owner_ ? "True" : "False",
+                     p,
+                     data_);
+    if (is_owner_ && p == data_) {
         fast_free(data_);
         size_ = 0U;
+        data_ = nullptr;
     }
 }
 
@@ -88,7 +93,7 @@ private:
 void MemoryPool::Collect(MemoryType mem_type) {
     auto type_it = pool_.find(mem_type);
     if (type_it == pool_.end()) {
-        SIMPLE_LOG_DEBUG("collecting cache pool of non-exist memory type\n");
+        SIMPLE_LOG_DEBUG("collecting cache pool of non-exist memory type");
         return;
     }
     auto& type_pool                         = type_it->second;
@@ -106,7 +111,7 @@ void MemoryPool::Collect(MemoryType mem_type) {
             }
         }
         for (auto& id : need_collect_id) {
-            SIMPLE_LOG_DEBUG("collect #BlockId_%i\n", id);
+            SIMPLE_LOG_DEBUG("collect #BlockId_%i", id);
             size_pool.second.erase(id);
             current_size_[mem_type] -= size_pool.first;
         }
@@ -115,14 +120,14 @@ void MemoryPool::Collect(MemoryType mem_type) {
         }
     }
     for (auto& size : need_collect_size) {
-        SIMPLE_LOG_DEBUG("collect #BlockSize_%i\n", size);
+        SIMPLE_LOG_DEBUG("collect #BlockSize_%i", size);
         type_pool.erase(size);
     }
 }
 
 bool MemoryPool::Expand() {
     if (expand_times_ < max_expand_times_) {
-        SIMPLE_LOG_DEBUG("expanding data manager cache pool capacity\n");
+        SIMPLE_LOG_DEBUG("expanding data manager cache pool capacity");
         expand_times_++;
         capacity_ *= 2;
         return true;
@@ -132,7 +137,7 @@ bool MemoryPool::Expand() {
 
 bool MemoryPool::Shrink() {
     if (expand_times_ >= 1) {
-        SIMPLE_LOG_DEBUG("shrinking data manager cache pool capacity\n");
+        SIMPLE_LOG_DEBUG("shrinking data manager cache pool capacity");
         expand_times_--;
         capacity_ /= 2;
         return true;
@@ -145,13 +150,13 @@ std::pair<uint32_t, std::shared_ptr<DataManager>> MemoryPool::CreateDataMgr(Memo
 
     auto it = current_size_.find(mem_type);
     if (it == current_size_.end()) {
-        SIMPLE_LOG_DEBUG("#BlockType_%i is empty\n", static_cast<int>(mem_type));
+        SIMPLE_LOG_DEBUG("#BlockType_%i is empty", static_cast<int>(mem_type));
         current_size_.insert(std::make_pair(mem_type, 0U));
     }
     while (current_size_[mem_type] + size > capacity_ && Expand()) {
-        SIMPLE_LOG_DEBUG("#BlockType_%i is still over capacity\n", static_cast<int>(mem_type));
+        SIMPLE_LOG_DEBUG("#BlockType_%i is still over capacity", static_cast<int>(mem_type));
         if (!Expand()) {
-            SIMPLE_LOG_ERROR("#BlockType_%i expand times over limits, %ivs%i\n",
+            SIMPLE_LOG_ERROR("#BlockType_%i expand times over limits, %ivs%i",
                              static_cast<int>(mem_type),
                              expand_times_,
                              max_expand_times_);
@@ -170,7 +175,7 @@ std::pair<uint32_t, std::shared_ptr<DataManager>> MemoryPool::Allocate(const Mem
     std::lock_guard<std::mutex> lock(mutex_);
     Collect(mem_type);
     while (current_size_[mem_type] < capacity_ / 2 && Shrink()) {
-        SIMPLE_LOG_DEBUG("%i memory capacity shrink, %i\n", static_cast<int>(mem_type), capacity_);
+        SIMPLE_LOG_DEBUG("%i memory capacity shrink, %i", static_cast<int>(mem_type), capacity_);
     }
 
     auto type_it = pool_.find(mem_type);
@@ -207,7 +212,7 @@ std::pair<uint32_t, std::shared_ptr<DataManager>> MemoryPool::Allocate(const Mem
     auto& size_pool = size_it->second;
     for (auto& item : size_pool) {
         if (!item.second->IsUsing()) {
-            SIMPLE_LOG_DEBUG("reuse #BlockSize_%i\n", item.first, size);
+            SIMPLE_LOG_DEBUG("reuse #BlockSize_%i", item.first, size);
             item.second->SetState(true);
             return std::make_pair(item.first, item.second->GetData());
         }
@@ -220,7 +225,7 @@ std::pair<uint32_t, std::shared_ptr<DataManager>> MemoryPool::Allocate(const Mem
             }
             return true;
         }()) {
-        SIMPLE_LOG_DEBUG("all #BlockSize_%i is using, so reallocl #BlockSize_%i\n", size, size);
+        SIMPLE_LOG_DEBUG("all #BlockSize_%i is using, so reallocl #BlockSize_%i", size, size);
         auto ret        = CreateDataMgr(mem_type, size);
         auto data_block = std::make_shared<DataBlock>(ret.second, true);
         auto id_item    = std::make_pair(ret.first, data_block);
@@ -236,7 +241,7 @@ void MemoryPool::Release(MemoryType mem_type, uint32_t size, uint32_t id) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto type_it = pool_.find(mem_type);
     if (type_it == pool_.end()) {
-        SIMPLE_LOG_DEBUG("unable to find #BlockType_%i for this type\n",
+        SIMPLE_LOG_DEBUG("unable to find #BlockType_%i for this type",
                          static_cast<int>(mem_type));
         return;
     }
@@ -244,14 +249,14 @@ void MemoryPool::Release(MemoryType mem_type, uint32_t size, uint32_t id) {
     auto& size_pool = type_it->second;
     auto size_it    = size_pool.find(size);
     if (size_it == size_pool.end()) {
-        SIMPLE_LOG_DEBUG("unable to find #BlockSize_%i for this size\n", size);
+        SIMPLE_LOG_DEBUG("unable to find #BlockSize_%i for this size", size);
         return;
     }
 
     auto& id_pool = size_it->second;
     auto id_it    = id_pool.find(id);
     if (id_it == id_pool.end()) {
-        SIMPLE_LOG_DEBUG("unable to find #BlockId_%i for this id\n", id);
+        SIMPLE_LOG_DEBUG("unable to find #BlockId_%i for this id", id);
         return;
     }
 

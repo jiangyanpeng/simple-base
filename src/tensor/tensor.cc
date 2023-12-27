@@ -24,7 +24,7 @@ static uint32_t TypeSize(DataType elem_type) {
             size = 4U;
             break;
         default:
-            SIMPLE_LOG_ERROR("can't support %i\n", static_cast<int>(elem_type));
+            SIMPLE_LOG_ERROR("can't support %i", static_cast<int>(elem_type));
             break;
     }
     return size;
@@ -60,11 +60,11 @@ Tensor::Tensor(const std::vector<uint32_t>& shape,
       use_cache_{false},
       init_done_{false} {
     if (this->InitImageParamters() != MStatus::M_OK) {
-        SIMPLE_LOG_ERROR("construct tensor failed, init tensor paramters failed\n");
+        SIMPLE_LOG_ERROR("construct tensor failed, init tensor paramters failed");
         return;
     }
     if (this->CreatDataManager(mem_type) != MStatus::M_OK) {
-        SIMPLE_LOG_ERROR("construct tensor failed, init tensor manager failed\n");
+        SIMPLE_LOG_ERROR("construct tensor failed, init tensor manager failed");
         return;
     }
     this->data_manager_->Malloc(this->size_);
@@ -87,11 +87,11 @@ Tensor::Tensor(const void* data_ptr,
       use_cache_{true},
       init_done_{false} {
     if (this->InitImageParamters() != MStatus::M_OK) {
-        SIMPLE_LOG_ERROR("construct tensor failed, init tensor paramters failed\n");
+        SIMPLE_LOG_ERROR("construct tensor failed, init tensor paramters failed");
         return;
     }
     if (this->CreatDataManager(mem_type) != MStatus::M_OK) {
-        SIMPLE_LOG_ERROR("construct tensor failed, init tensor manager failed\n");
+        SIMPLE_LOG_ERROR("construct tensor failed, init tensor manager failed");
         return;
     }
     this->data_manager_->Setptr(const_cast<void*>(data_ptr), this->size_);
@@ -115,11 +115,11 @@ Tensor::Tensor(const std::shared_ptr<DataManager>& data_mgr,
       use_cache_{false},
       init_done_(false) {
     if (nullptr == data_manager_) {
-        SIMPLE_LOG_DEBUG("construct tensor failed, input data manager nullptr\n");
+        SIMPLE_LOG_DEBUG("construct tensor failed, input data manager nullptr");
         return;
     }
     if (this->InitImageParamters() != MStatus::M_OK) {
-        SIMPLE_LOG_ERROR("construct tensor failed, init tensor paramters failed\n");
+        SIMPLE_LOG_ERROR("construct tensor failed, init tensor paramters failed");
         return;
     }
 }
@@ -140,7 +140,7 @@ MStatus Tensor::InitImageParamters() {
             LAYOUT_C = 3;
             break;
         default:
-            SIMPLE_LOG_ERROR("can't support layout\n");
+            SIMPLE_LOG_ERROR("can't support layout");
             return MStatus::M_NOT_SUPPORT;
     }
     int LAYOUT_N = 0;
@@ -154,7 +154,7 @@ MStatus Tensor::InitImageParamters() {
 
 MStatus Tensor::CreatDataManager(const MemoryType& mem_type) {
     std::string mem_type_str = DataManager::MemTypeToMemTypeStr(mem_type);
-    SIMPLE_LOG_DEBUG("Tensor::CreatDataManager %s\n", mem_type_str.c_str());
+    SIMPLE_LOG_DEBUG("Tensor::CreatDataManager %s", mem_type_str.c_str());
 
     if (nullptr == this->data_manager_) {
         this->data_manager_ = std::make_shared<DataManager>();
@@ -170,7 +170,7 @@ std::shared_ptr<Tensor> Tensor::Clone() const {
     auto replica = std::make_shared<Tensor>(
         this->shape_, this->shape_mode_, this->mem_type_, this->elem_type_);
     if (nullptr == replica) {
-        SIMPLE_LOG_ERROR("clone tensot failed\n");
+        SIMPLE_LOG_ERROR("clone tensot failed");
         return nullptr;
     }
     memcpy(this->GetData<void>(), replica->GetData<void>(), replica->GetSize());
@@ -194,14 +194,14 @@ bool Tensor::operator!=(const Tensor& other) {
 
 std::shared_ptr<Tensor> transpose(const std::shared_ptr<Tensor>& tensor) {
     if (tensor->GetShape().size() != 4 || tensor->GetShape(0) != 1 || tensor->GetShape(1) != 1) {
-        SIMPLE_LOG_ERROR("tensor transpose only support 2D matrix\n");
+        SIMPLE_LOG_ERROR("tensor transpose only support 2D matrix");
         return nullptr;
     }
     std::vector<uint32_t> shape{1, 1, tensor->GetShape(3), tensor->GetShape(2)};
     auto result = std::make_shared<Tensor>(
         shape, tensor->GetShapeMode(), tensor->GetMemType(), tensor->GetElemType());
     if (!result) {
-        SIMPLE_LOG_ERROR("transpose failed, malloc [%i, %i, %i, %i] data failed\n",
+        SIMPLE_LOG_ERROR("transpose failed, malloc [%i, %i, %i, %i] data failed",
                          shape[0],
                          shape[1],
                          shape[2],
