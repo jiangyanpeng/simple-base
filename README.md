@@ -1,6 +1,6 @@
 # Overview
 
-![avatar](docs/framework.png)
+![avatar](docs/simple.png)
 
 ## 设计思想
 
