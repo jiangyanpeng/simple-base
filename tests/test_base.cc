@@ -1,10 +1,20 @@
 #include "common.h"
 #include "log.h"
+#include "manager/data_manager.h"
 #include "tensor/tensor.h"
 #include "utils/test_util.h"
 
 #include <fstream>
 #include <gtest/gtest.h>
+
+class ManagerTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+#ifdef CONFIG_SIMPLE_BASE_ENABLE_SPDLOG
+        close_level(true);
+#endif
+    }
+};
 
 class ImageTest : public ::testing::Test {
 protected:
@@ -202,4 +212,40 @@ TEST_F(TensorTest, transpose) {
     EXPECT_TRUE(tran_tensor->GetShape(0) == 1);
     EXPECT_EQ(tensor->GetShape(2), tran_tensor->GetShape(3));
     EXPECT_EQ(tensor->GetShape(3), tran_tensor->GetShape(2));
+}
+
+TEST_F(ManagerTest, DataManager_API) {
+    auto data_manager = std::make_shared<base::DataManager>();
+    EXPECT_TRUE(data_manager != nullptr);
+    EXPECT_EQ(data_manager->GetSize(), 0);
+
+    void* data_ptr = data_manager->Malloc(1000);
+    EXPECT_TRUE(data_ptr != nullptr);
+    EXPECT_EQ(data_manager->GetSize(), 1000);
+    EXPECT_EQ(data_ptr, data_manager->GetDataPtr());
+}
+
+TEST_F(ManagerTest, DataManager_Malloc) {
+    for (int i = 0; i < 100; i++) {
+        auto data_manager = std::make_shared<base::DataManager>();
+        auto data         = data_manager->Malloc(1000);
+        EXPECT_TRUE(((size_t)data & 1) == 0);
+        EXPECT_TRUE(data != nullptr);
+        data_manager->Free(data);
+        EXPECT_TRUE(data_manager->GetDataPtr() == nullptr);
+        EXPECT_EQ(data_manager->GetSize(), 0);
+    }
+}
+
+TEST_F(ManagerTest, DataManager) {
+    uint8_t* e_data = new uint8_t[1000];
+    EXPECT_TRUE(e_data != nullptr);
+
+    auto data_manager = std::make_shared<base::DataManager>();
+    EXPECT_TRUE(data_manager != nullptr);
+
+    auto set_data = data_manager->Setptr(e_data, 1000);
+    EXPECT_TRUE(e_data == set_data);
+    EXPECT_EQ(data_manager->GetSize(), 1000);
+    EXPECT_EQ(data_manager->IsOwner(), false);
 }

@@ -102,20 +102,20 @@ public:
     DataManager()
         : mem_type_(MemoryType::M_MEM_ON_CPU),
           mem_type_str_(MEMTYPE_CPU),
-          is_owner_(false),
+          is_owner_(true),
           data_{nullptr},
           size_(0U) {}
 
     virtual ~DataManager() {}
 
     virtual void* Malloc(const uint32_t size);
+    virtual void Free(void* p);
     virtual std::shared_ptr<DataManager> Create() const;
     virtual MStatus SyncCache(bool io = true);
     virtual uint32_t GetSize() const { return size_; }
     virtual void* GetDataPtr() const { return reinterpret_cast<void*>(data_); }
 
     void* Setptr(void* ptr, uint32_t size);
-    void Free();
     inline const MemoryType& GetMemType() const { return mem_type_; }
     inline const std::string& GetMemTypeStr() const { return mem_type_str_; }
 
@@ -138,7 +138,7 @@ public:
     static MemoryType MemTypeStrToMemType(const std::string& type) {
         auto it = mem_type_map_.find(type);
         if (it == mem_type_map_.end()) {
-            SIMPLE_LOG_ERROR("unsupport mem type %s\n", type.c_str());
+            SIMPLE_LOG_ERROR("unsupport mem type %s", type.c_str());
             return MemoryType::M_MEM_ON_MEMORY_MAX;
         }
         return it->second;
@@ -179,6 +179,7 @@ public:
     DataMgrCache(std::string mem_type) : DataManager() { SetMemType(mem_type); }
     ~DataMgrCache();
     void* Malloc(const uint32_t size) override;
+    void Free(void* p) override { UNUSED_WARN(p); }
 
     std::shared_ptr<DataManager> Create() const override { return data_manager_->Create(); }
     void* GetDataPtr() const override { return data_manager_->GetDataPtr(); }
