@@ -1,10 +1,13 @@
 # Overview
 
-![avatar](docs/a.jpg)
+![avatar](docs/framework.png)
 
 ## 设计思想
 
-* 提供基础的算法底层库
+* 提供基础的算法底层库和基础功能，支持上层的依赖
+* 提供内存池管理，线程池调度等基础组件
+* 提供基础的数据结构，如image/tensor等
+* 提供基础的日志输出库
 
 ## 目的
 
@@ -12,7 +15,8 @@
 
 ## 环境配置
 
-* 系统：Ubuntu 16.04
+* Ubuntu 16.04
+* gcc > 5.0+
 * [开发环境配置]()
 * [git-lfs配置]()
 * [git message](https://github.com/streamich/git-cz)
@@ -23,7 +27,6 @@
 ## Linux-x86_64 Sample使用
 
 * sh scripts/build_linux_x86.sh
-
 
 
 ## [代码规范]
