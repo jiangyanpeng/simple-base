@@ -20,13 +20,15 @@ namespace base {
 #define MEMTYPE_CUDA_DEV ("CUDA_DEV")
 #define MEMTYPE_INVALID ("INVALID")
 
+// clang-format off
 const static std::unordered_map<std::string, MemoryType> mem_type_map_ = {
-    {MEMTYPE_CPU, MemoryType::M_MEM_ON_CPU},
-    {MEMTYPE_CUDA_HOST, MemoryType::M_MEM_ON_CUDA_HOST},
-    {MEMTYPE_CUDA_DEV, MemoryType::M_MEM_ON_CUDA_DEV},
-    {MEMTYPE_OCL, MemoryType::M_MEM_ON_OCL},
-    {MEMTYPE_HEXAGON_DSP, MemoryType::M_MEM_ON_HEXAGON_DSP}};
-
+    {MEMTYPE_CPU,         MemoryType::M_MEM_ON_CPU        },
+    {MEMTYPE_CUDA_HOST,   MemoryType::M_MEM_ON_CUDA_HOST  },
+    {MEMTYPE_CUDA_DEV,    MemoryType::M_MEM_ON_CUDA_DEV   },
+    {MEMTYPE_OCL,         MemoryType::M_MEM_ON_OCL        },
+    {MEMTYPE_HEXAGON_DSP, MemoryType::M_MEM_ON_HEXAGON_DSP}
+};
+// clang-format on
 
 /* align up to z^n */
 template <typename T_>
@@ -100,22 +102,20 @@ public:
     DataManager()
         : mem_type_(MemoryType::M_MEM_ON_CPU),
           mem_type_str_(MEMTYPE_CPU),
-          use_cache_(false),
+          is_owner_(false),
           data_{nullptr},
           size_(0U) {}
 
     virtual ~DataManager() {}
 
     virtual void* Malloc(const uint32_t size);
-    virtual void* Setptr(void* ptr, uint32_t size);
-    virtual void Free();
     virtual std::shared_ptr<DataManager> Create() const;
-
     virtual MStatus SyncCache(bool io = true);
+    virtual uint32_t GetSize() const { return size_; }
+    virtual void* GetDataPtr() const { return reinterpret_cast<void*>(data_); }
 
-    inline uint32_t GetSize() const { return size_; }
-    inline void* GetDataPtr() const { return reinterpret_cast<void*>(data_); }
-
+    void* Setptr(void* ptr, uint32_t size);
+    void Free();
     inline const MemoryType& GetMemType() const { return mem_type_; }
     inline const std::string& GetMemTypeStr() const { return mem_type_str_; }
 
@@ -124,9 +124,8 @@ public:
         mem_type_     = MemTypeStrToMemType(mem_type_str_);
     }
 
-    inline bool IsUseCache() const { return use_cache_; };
-    inline void SetUseCache(const bool use_cache) { use_cache_ = use_cache; };
-
+    inline bool IsOwner() const { return is_owner_; };
+    inline void SetOwer(bool owner) { is_owner_ = owner; }
     static const std::string MemTypeToMemTypeStr(const MemoryType type) {
         for (auto& item : mem_type_map_) {
             if (item.second == type) {
@@ -148,11 +147,50 @@ public:
 private:
     MemoryType mem_type_;
     std::string mem_type_str_;
-    bool use_cache_;
+    bool is_owner_;
 
     uint8_t* data_;
     uint32_t size_;
 };
+
+
+class DataBlock final {
+public:
+    DataBlock(const std::shared_ptr<DataManager>& data_ptr, bool in_use) : data_ptr_(data_ptr) {
+        SetState(in_use);
+    }
+
+    std::shared_ptr<DataManager>& GetData() { return data_ptr_; }
+    void SetState(const bool in_use) {
+        in_use_     = in_use;
+        time_stamp_ = TimeStamp();
+    }
+    bool IsUsing() const { return in_use_; }
+    TimeStamp GetLastTimeUpdated() const { return time_stamp_; }
+
+private:
+    bool in_use_;
+    TimeStamp time_stamp_;
+    std::shared_ptr<DataManager> data_ptr_;
+};
+
+class DataMgrCache final : public DataManager {
+public:
+    DataMgrCache(std::string mem_type) : DataManager() { SetMemType(mem_type); }
+    ~DataMgrCache();
+    void* Malloc(const uint32_t size) override;
+
+    std::shared_ptr<DataManager> Create() const override { return data_manager_->Create(); }
+    void* GetDataPtr() const override { return data_manager_->GetDataPtr(); }
+    MStatus SyncCache(bool io = true) override { return data_manager_->SyncCache(io); };
+    uint32_t GetSize() const override { return data_manager_->GetSize(); };
+
+private:
+    uint32_t size_                             = 0;
+    uint32_t id_                               = 0;
+    std::shared_ptr<DataManager> data_manager_ = nullptr;
+};
+
 
 } // namespace base
 #endif // SIMPLE_BASE_DATA_MANAGER_H_
