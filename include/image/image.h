@@ -35,8 +35,7 @@ public:
           const PixelFormat pixel_format,
           const TimeStamp& time_stamp,
           const void* data,
-          const MemoryType mem_type = MemoryType::M_MEM_ON_CPU,
-          const bool use_cache      = false);
+          const MemoryType mem_type = MemoryType::M_MEM_ON_CPU);
 
     /// @brief Construct image with memory allocate
     /// @param[in] width  : The width of image.
@@ -45,7 +44,6 @@ public:
     /// @param[in] pixel_format : The format of image.
     /// @param[in] time_stamp : The time_stamp of image.
     /// @param[in] mem_type : The memory type of image.
-    /// @param[in] use_cache : Whether use cache memory.
     /// @param[in] mem_alloced : Alloc memory insight.
     /// @note
     /// Only support number == 1 or batch size = 1
@@ -55,7 +53,6 @@ public:
           const uint32_t number,
           const PixelFormat pixel_format,
           const MemoryType mem_type,
-          const bool use_cache   = false,
           const bool mem_alloced = false);
 
     /// @brief Construct image with memory allocate
@@ -73,45 +70,38 @@ public:
           const uint32_t number,
           const PixelFormat pixel_format,
           const TimeStamp& time_stamp,
-          const MemoryType mem_type = MemoryType::M_MEM_ON_CPU,
-          const bool use_cache      = false);
+          const MemoryType mem_type = MemoryType::M_MEM_ON_CPU);
 
     /// @brief Construct  with specified format, only memory alloc, no data copy
     /// @param[in] pixel_format : The format of image.
-    Image(const Image& other, const PixelFormat format, const bool use_cache = false)
+    Image(const Image& other, const PixelFormat format)
         : Image(other.GetWidth(),
                 other.GetHeight(),
                 other.GetNumber(),
                 format,
                 other.GetTimestamp(),
-                other.data_manager_->GetMemType(),
-                use_cache) {}
+                other.data_manager_->GetMemType()) {}
 
     /// @brief Construct  with specified  h w, only memory alloc, no data copy
     /// @param[in] width  : The width of image.
     /// @param[in] height : The height of image.
-    Image(const Image& other,
-          const uint32_t width,
-          const uint32_t height,
-          const bool use_cache = false)
+    Image(const Image& other, const uint32_t width, const uint32_t height)
         : Image(width,
                 height,
                 other.GetNumber(),
                 other.GetPixelFormat(),
                 other.GetTimestamp(),
-                other.data_manager_->GetMemType(),
-                use_cache) {}
+                other.data_manager_->GetMemType()) {}
 
     /// @brief Construct  with specified  mem type , only memory alloc, no data copy
     /// @param[in] mem_type  : mem_type.
-    Image(const Image& other, const MemoryType mem_type, const bool use_cache = false)
+    Image(const Image& other, const MemoryType mem_type)
         : Image(other.GetWidth(),
                 other.GetHeight(),
                 other.GetNumber(),
                 other.GetPixelFormat(),
                 other.GetTimestamp(),
-                mem_type,
-                use_cache) {}
+                mem_type) {}
 
     /// @brief Split image with index, No data copy
     /// @param[in] idx : The index of number.
@@ -233,7 +223,6 @@ private:
     std::string pixel_format_str_{};
     std::shared_ptr<DataManager> data_manager_{nullptr};
 
-    bool use_cache_{false};
     bool init_done_{false};
 };
 

@@ -114,8 +114,8 @@ public:
     virtual MStatus SyncCache(bool io = true);
     virtual uint32_t GetSize() const { return size_; }
     virtual void* GetDataPtr() const { return reinterpret_cast<void*>(data_); }
+    virtual void* Setptr(void* ptr, uint32_t size);
 
-    void* Setptr(void* ptr, uint32_t size);
     inline const MemoryType& GetMemType() const { return mem_type_; }
     inline const std::string& GetMemTypeStr() const { return mem_type_str_; }
 
@@ -159,6 +159,8 @@ public:
     ~DataMgrCache();
     void* Malloc(const uint32_t size) override;
     void Free(void* p) override { UNUSED_WARN(p); }
+    void* Setptr(void* ptr, uint32_t size) override;
+
 
     std::shared_ptr<DataManager> Create() const override { return data_manager_->Create(); }
     void* GetDataPtr() const override { return data_manager_->GetDataPtr(); }

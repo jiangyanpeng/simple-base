@@ -210,7 +210,6 @@ private:
     MemoryType mem_type_;
     std::shared_ptr<DataManager> data_manager_;
 
-    bool use_cache_{false};
     bool init_done_{false};
 };
 

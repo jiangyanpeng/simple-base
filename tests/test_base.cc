@@ -190,7 +190,7 @@ TEST_F(TensorTest, Matrix_GetData_API) {
     std::vector<uint32_t> nums_shape{1, channel, rows, cols};
     auto nums_tensor = std::make_shared<base::Tensor>(
         (void*)nums.data(), nums_shape, M_LAYOUT_NCHW, M_MEM_ON_CPU, M_DATA_TYPE_FLOAT32);
-
+    EXPECT_TRUE(nums_tensor != nullptr);
     for (int i = 0; i < rows; i++) {
         float* row_ptr = nums_tensor->GetData<float>(0) + i * cols;
         for (int j = 0; j < cols; j++) {
