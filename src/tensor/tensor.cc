@@ -41,7 +41,6 @@ Tensor::Tensor()
       name_{""},
       mem_type_(M_MEM_ON_CPU),
       data_manager_{nullptr},
-      use_cache_{false},
       init_done_{false} {}
 
 Tensor::Tensor(const std::vector<uint32_t>& shape,
@@ -57,7 +56,6 @@ Tensor::Tensor(const std::vector<uint32_t>& shape,
       elem_type_{element_type},
       name_{""},
       data_manager_{nullptr},
-      use_cache_{false},
       init_done_{false} {
     if (this->InitImageParamters() != MStatus::M_OK) {
         SIMPLE_LOG_ERROR("construct tensor failed, init tensor paramters failed");
@@ -84,7 +82,6 @@ Tensor::Tensor(const void* data_ptr,
       elem_type_{element_type},
       name_{""},
       data_manager_{nullptr},
-      use_cache_{true},
       init_done_{false} {
     if (this->InitImageParamters() != MStatus::M_OK) {
         SIMPLE_LOG_ERROR("construct tensor failed, init tensor paramters failed");
@@ -112,7 +109,6 @@ Tensor::Tensor(const std::shared_ptr<DataManager>& data_mgr,
       name_(""),
       mem_type_(mem_type),
       data_manager_(data_mgr),
-      use_cache_{false},
       init_done_(false) {
     if (nullptr == data_manager_) {
         SIMPLE_LOG_DEBUG("construct tensor failed, input data manager nullptr");
@@ -154,15 +150,21 @@ MStatus Tensor::InitImageParamters() {
 
 MStatus Tensor::CreatDataManager(const MemoryType& mem_type) {
     std::string mem_type_str = DataManager::MemTypeToMemTypeStr(mem_type);
-    SIMPLE_LOG_DEBUG("Tensor::CreatDataManager %s", mem_type_str.c_str());
+    SIMPLE_LOG_DEBUG("Tensor::CreatDataManager %s Start", mem_type_str.c_str());
 
     if (nullptr == this->data_manager_) {
+#ifdef CONFIG_SIMPLE_BASE_ENABLE_LOW_MEMORY
+        this->data_manager_ = std::make_shared<DataMgrCache>(mem_type_str);
+#else
         this->data_manager_ = std::make_shared<DataManager>();
+#endif // CONFIG_SIMPLE_BASE_ENABLE_LOW_MEMORY
     }
+
     if (nullptr == this->data_manager_) {
         SIMPLE_LOG_ERROR("%s data manager is nullptr", mem_type_str.c_str());
         return MStatus::M_FAILED;
     }
+    SIMPLE_LOG_DEBUG("Tensor::CreatDataManager %s End", mem_type_str.c_str());
     return MStatus::M_OK;
 }
 

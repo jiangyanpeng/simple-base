@@ -277,6 +277,7 @@ std::pair<uint32_t, std::shared_ptr<DataManager>> MemoryPool::Allocate(const Mem
 
 void MemoryPool::Release(MemoryType mem_type, uint32_t size, uint32_t id) {
     std::lock_guard<std::mutex> lock(mutex_);
+    SIMPLE_LOG_DEBUG("MemoryPool::Release #BlockID_%i, #BlockSize_%i", id, size);
     auto type_it = pool_.find(mem_type);
     if (type_it == pool_.end()) {
         SIMPLE_LOG_DEBUG("unable to find #BlockType_%i for this type", static_cast<int>(mem_type));
@@ -328,12 +329,19 @@ void MemoryPool::PrintPool() {
 }
 
 DataMgrCache::~DataMgrCache() {
-    if (IsOwner()) {
+    // for debug
+    // MemoryPool::GetInstance().PrintPool();
+    if (data_manager_->IsOwner()) {
         MemoryPool::GetInstance().Release(GetMemType(), size_, id_);
     }
 }
 
 void* DataMgrCache::Malloc(const uint32_t size) {
+    if (data_manager_ && !data_manager_->IsOwner()) {
+        SIMPLE_LOG_WARN("IsOwner: %i, can't support DataMgrCache::Malloc API",
+                        data_manager_->IsOwner());
+        return data_manager_->GetDataPtr();
+    }
     SIMPLE_LOG_DEBUG("DataMgrCache::Malloc Start");
 
     auto ret      = MemoryPool::GetInstance().Allocate(GetMemType(), size);
@@ -346,6 +354,20 @@ void* DataMgrCache::Malloc(const uint32_t size) {
 
     SIMPLE_LOG_DEBUG("DataMgrCache::Malloc End");
     return data_manager_->GetDataPtr();
+}
+
+void* DataMgrCache::Setptr(void* ptr, uint32_t size) {
+    SIMPLE_LOG_DEBUG("DataMgrCache::Setptr Start");
+
+    data_manager_ = std::make_shared<DataManager>();
+    if (!data_manager_) {
+        SIMPLE_LOG_ERROR("DataMgrCache::Setptr failed, make data manager faile");
+        return nullptr;
+    }
+    data_manager_->SetOwer(false);
+    SIMPLE_LOG_DEBUG("DataMgrCache::Setptr End");
+
+    return data_manager_->Setptr(ptr, size);
 }
 
 } // namespace base

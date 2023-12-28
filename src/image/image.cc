@@ -1,6 +1,7 @@
 #ifdef _MSC_VER
 #include <algorithm>
 #endif
+
 #include "image/image.h"
 #include "log.h"
 #include "manager/data_manager.h"
@@ -22,7 +23,6 @@ Image::Image()
       pixel_format_{},
       pixel_format_str_{},
       data_manager_{nullptr},
-      use_cache_{false},
       init_done_{false} {}
 
 Image::Image(const uint32_t width,
@@ -31,14 +31,12 @@ Image::Image(const uint32_t width,
              const PixelFormat format,
              const TimeStamp& time_stamp,
              const void* data,
-             const MemoryType mem_type,
-             const bool use_cache) {
+             const MemoryType mem_type) {
     width_        = width;
     height_       = height;
     number_       = number;
     pixel_format_ = format;
     time_stamp_   = time_stamp;
-    use_cache_    = use_cache;
 
     if (nullptr == data) {
         SIMPLE_LOG_ERROR("construct image failed, input ptr nullptr");
@@ -62,13 +60,8 @@ Image::Image(const uint32_t width,
              const uint32_t number,
              const PixelFormat pixel_format,
              const MemoryType mem_type,
-             const bool use_cache,
              const bool mem_alloced)
-    : number_{number},
-      width_{width},
-      height_{height},
-      pixel_format_{pixel_format},
-      use_cache_{use_cache} {
+    : number_{number}, width_{width}, height_{height}, pixel_format_{pixel_format} {
 
     if (this->CreatDataManager(mem_type) != MStatus::M_OK) {
         SIMPLE_LOG_ERROR("construct image failed, init image manager failed");
@@ -91,14 +84,12 @@ Image::Image(const uint32_t width,
              const uint32_t number,
              const PixelFormat format,
              const TimeStamp& time_stamp,
-             const MemoryType mem_type,
-             const bool use_cache) {
+             const MemoryType mem_type) {
     width_        = width;
     height_       = height;
     number_       = number;
     pixel_format_ = format;
     time_stamp_   = time_stamp;
-    use_cache_    = use_cache;
 
     if (this->CreatDataManager(mem_type) != MStatus::M_OK) {
         SIMPLE_LOG_ERROR("construct image failed, init image manager failed");
@@ -357,13 +348,13 @@ MStatus Image::CreatDataManager(const MemoryType mem_type) {
     SIMPLE_LOG_DEBUG("Image::CreatDataManager %s", mem_type_str.c_str());
 
     if (nullptr == this->data_manager_) {
-        if (use_cache_) {
-            SIMPLE_LOG_ERROR("now not support cache manager %s memory", mem_type_str.c_str());
-            return MStatus::M_NOT_SUPPORT;
-        } else {
-            this->data_manager_ = std::make_shared<DataManager>();
-        }
+#ifdef CONFIG_SIMPLE_BASE_ENABLE_LOW_MEMORY
+        this->data_manager_ = std::make_shared<DataMgrCache>(mem_type_str);
+#else
+        this->data_manager_ = std::make_shared<DataManager>();
+#endif // CONFIG_SIMPLE_BASE_ENABLE_LOW_MEMORY
     }
+
     if (nullptr == this->data_manager_) {
         SIMPLE_LOG_ERROR("%s data_manager is nullptr", mem_type_str.c_str());
         return M_INTERNAL_FAILED;
