@@ -44,6 +44,26 @@ MStatus DataManager::SyncCache(bool io) {
     return MStatus::M_OK;
 }
 
+class DataBlock final {
+public:
+    DataBlock(const std::shared_ptr<DataManager>& data_ptr, bool in_use) : data_ptr_(data_ptr) {
+        SetState(in_use);
+    }
+
+    std::shared_ptr<DataManager>& GetData() { return data_ptr_; }
+    void SetState(const bool in_use) {
+        in_use_     = in_use;
+        time_stamp_ = TimeStamp();
+    }
+    bool IsUsing() const { return in_use_; }
+    TimeStamp GetLastTimeUpdated() const { return time_stamp_; }
+
+private:
+    bool in_use_;
+    TimeStamp time_stamp_;
+    std::shared_ptr<DataManager> data_ptr_;
+};
+
 class MemoryPool final {
     static constexpr int MemTypeMax = 5;
     using DataBlockPtr              = std::shared_ptr<DataBlock>;
@@ -96,22 +116,28 @@ void MemoryPool::Collect(MemoryType mem_type) {
         SIMPLE_LOG_DEBUG("collecting cache pool of non-exist memory type");
         return;
     }
+    SIMPLE_LOG_DEBUG("   enter memory pool collect");
     auto& type_pool                         = type_it->second;
     std::vector<uint32_t> need_collect_size = {};
     for (auto& size_pool : type_pool) {
         std::vector<uint32_t> need_collect_id = {};
         for (auto& id_pool : size_pool.second) {
             if (id_pool.second->IsUsing()) {
+                SIMPLE_LOG_WARN("   collect pool #BlockID_%i #BlockSize_%i is using",
+                                id_pool.first,
+                                size_pool.first);
                 continue;
             }
             auto last_update          = id_pool.second->GetLastTimeUpdated();
             const auto now_time_stamp = TimeStamp();
-            if (std::abs(last_update.tv_sec - now_time_stamp.tv_sec) > unused_timeout_) {
+            int64_t diff              = std::abs(last_update.tv_sec - now_time_stamp.tv_sec);
+            SIMPLE_LOG_DEBUG("   time stamp diff: %i, limit: %i", diff, unused_timeout_);
+            if (diff > unused_timeout_) {
                 need_collect_id.push_back(id_pool.first);
             }
         }
         for (auto& id : need_collect_id) {
-            SIMPLE_LOG_DEBUG("collect #BlockId_%i", id);
+            SIMPLE_LOG_DEBUG("   collect #BlockId_%i", id);
             size_pool.second.erase(id);
             current_size_[mem_type] -= size_pool.first;
         }
@@ -120,7 +146,7 @@ void MemoryPool::Collect(MemoryType mem_type) {
         }
     }
     for (auto& size : need_collect_size) {
-        SIMPLE_LOG_DEBUG("collect #BlockSize_%i", size);
+        SIMPLE_LOG_DEBUG("   collect #BlockSize_%i", size);
         type_pool.erase(size);
     }
 }
@@ -163,15 +189,24 @@ std::pair<uint32_t, std::shared_ptr<DataManager>> MemoryPool::CreateDataMgr(Memo
             return std::make_pair(last_id_, nullptr);
         }
     }
-    auto data_mgr = std::shared_ptr<DataManager>();
+    auto data_mgr = std::make_shared<DataManager>();
+    if (!data_mgr) {
+        SIMPLE_LOG_ERROR("MemoryPool::CreateDataMgr MemoryType: %i, size: %i failed",
+                         static_cast<int>(mem_type),
+                         size);
+        return std::make_pair(last_id_, nullptr);
+    }
     current_size_[mem_type] += size;
     data_mgr->Malloc(size);
     last_id_++;
+    SIMPLE_LOG_INFO("Success Malloc #BlockID_%i, #BlockSize_%i", last_id_, size);
     return std::make_pair(last_id_, data_mgr);
 }
 
 std::pair<uint32_t, std::shared_ptr<DataManager>> MemoryPool::Allocate(const MemoryType mem_type,
                                                                        const uint32_t size) {
+    SIMPLE_LOG_DEBUG(
+        "MemoryPool::Allocate Start, MemoryType: %i, size: %i", static_cast<int>(mem_type), size);
     std::lock_guard<std::mutex> lock(mutex_);
     Collect(mem_type);
     while (current_size_[mem_type] < capacity_ / 2 && Shrink()) {
@@ -180,7 +215,7 @@ std::pair<uint32_t, std::shared_ptr<DataManager>> MemoryPool::Allocate(const Mem
 
     auto type_it = pool_.find(mem_type);
     if (type_it == pool_.end()) {
-        SIMPLE_LOG_DEBUG("cache pool for MemoryType(%i) is empty", static_cast<int>(mem_type));
+        SIMPLE_LOG_DEBUG("cache pool for #BlockType_%i is empty", static_cast<int>(mem_type));
         auto ret        = CreateDataMgr(mem_type, size);
         auto data_block = std::make_shared<DataBlock>(ret.second, true);
         auto id_item    = std::make_pair(ret.first, data_block);
@@ -193,12 +228,14 @@ std::pair<uint32_t, std::shared_ptr<DataManager>> MemoryPool::Allocate(const Mem
         pool_.insert(mem_type_item);
         return ret;
     }
+    SIMPLE_LOG_DEBUG("MemoryPool::Allocate find #BlockType_%i", static_cast<int>(mem_type));
 
     auto& type_pool = type_it->second;
     auto size_it    = type_pool.find(size);
     if (size_it == type_pool.end()) {
-        SIMPLE_LOG_DEBUG(
-            "MemoryType(%i) cache pool for Size(%i) is empty", static_cast<int>(mem_type), size);
+        SIMPLE_LOG_DEBUG("MemoryType(%i) cache pool for #BlockSize_%i is empty",
+                         static_cast<int>(mem_type),
+                         size);
         auto ret        = CreateDataMgr(mem_type, size);
         auto data_block = std::make_shared<DataBlock>(ret.second, true);
         auto id_item    = std::make_pair(ret.first, data_block);
@@ -208,11 +245,12 @@ std::pair<uint32_t, std::shared_ptr<DataManager>> MemoryPool::Allocate(const Mem
         type_pool.insert(size_item);
         return ret;
     }
+    SIMPLE_LOG_DEBUG("MemoryPool::Allocate find #BlockSize_%i", static_cast<int>(size));
 
     auto& size_pool = size_it->second;
     for (auto& item : size_pool) {
         if (!item.second->IsUsing()) {
-            SIMPLE_LOG_DEBUG("reuse #BlockSize_%i", item.first, size);
+            SIMPLE_LOG_DEBUG("reuse #BlockID_%i, #BlockSize_%i", item.first, size);
             item.second->SetState(true);
             return std::make_pair(item.first, item.second->GetData());
         }
@@ -225,11 +263,11 @@ std::pair<uint32_t, std::shared_ptr<DataManager>> MemoryPool::Allocate(const Mem
             }
             return true;
         }()) {
-        SIMPLE_LOG_DEBUG("all #BlockSize_%i is using, so reallocl #BlockSize_%i", size, size);
         auto ret        = CreateDataMgr(mem_type, size);
         auto data_block = std::make_shared<DataBlock>(ret.second, true);
         auto id_item    = std::make_pair(ret.first, data_block);
         size_pool.insert(id_item);
+        SIMPLE_LOG_DEBUG("all #BlockSize_%i is using, so recreate #BlockID_%i", size, ret.first);
         return ret;
     }
 
@@ -241,8 +279,7 @@ void MemoryPool::Release(MemoryType mem_type, uint32_t size, uint32_t id) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto type_it = pool_.find(mem_type);
     if (type_it == pool_.end()) {
-        SIMPLE_LOG_DEBUG("unable to find #BlockType_%i for this type",
-                         static_cast<int>(mem_type));
+        SIMPLE_LOG_DEBUG("unable to find #BlockType_%i for this type", static_cast<int>(mem_type));
         return;
     }
 
@@ -266,24 +303,24 @@ void MemoryPool::Release(MemoryType mem_type, uint32_t size, uint32_t id) {
 void MemoryPool::PrintPool() {
     std::stringstream ss;
     ss << "******************** MemoryPool Info ********************" << std::endl;
-    ss << "capacity: " << capacity_ << std::endl;
+    ss << "capacity:     " << capacity_ << std::endl;
     ss << "expand_times: " << expand_times_ << std::endl;
     for (auto& type_pool : pool_) {
         uint32_t total = 0;
-        ss << "#BlockType_%i" << static_cast<int>(type_pool.first) << ":" << std::endl;
+        ss << "#BlockType_" << static_cast<int>(type_pool.first) << ":" << std::endl;
         for (auto& size_pool : type_pool.second) {
-            ss << "   #BlockSize_%i " << static_cast<int>(size_pool.first) << ": ";
+            ss << "   #BlockSize_" << static_cast<int>(size_pool.first) << ": ";
             for (auto& id_pool : size_pool.second) {
                 total += size_pool.first;
-                ss << "      #BlockID_%i" << id_pool.first << ":"
-                   << (id_pool.second->IsUsing() ? "USING" : "UNUSE") << ", ";
+                ss << "      #BlockID_" << id_pool.first << ":"
+                   << (id_pool.second->IsUsing() ? "(USING)" : "(UNUSE)") << "  ";
             }
             ss << std::endl;
         }
-        ss << "#BlockType_%i_total_size: " << static_cast<int>(type_pool.first) << total
+        ss << "#BlockType_" << static_cast<int>(type_pool.first) << "   total_size:   " << total
            << std::endl;
-        ss << "#BlockType_%i_current_size: " << static_cast<int>(type_pool.first)
-           << current_size_[type_pool.first] << std::endl;
+        ss << "#BlockType_" << static_cast<int>(type_pool.first)
+           << "   current_size: " << current_size_[type_pool.first] << std::endl;
     }
     ss << "******************** MemoryPool End ********************" << std::endl;
 
@@ -303,6 +340,9 @@ void* DataMgrCache::Malloc(const uint32_t size) {
     size_         = size;
     id_           = ret.first;
     data_manager_ = ret.second;
+
+    // for debug
+    // MemoryPool::GetInstance().PrintPool();
 
     SIMPLE_LOG_DEBUG("DataMgrCache::Malloc End");
     return data_manager_->GetDataPtr();

@@ -153,27 +153,6 @@ private:
     uint32_t size_;
 };
 
-
-class DataBlock final {
-public:
-    DataBlock(const std::shared_ptr<DataManager>& data_ptr, bool in_use) : data_ptr_(data_ptr) {
-        SetState(in_use);
-    }
-
-    std::shared_ptr<DataManager>& GetData() { return data_ptr_; }
-    void SetState(const bool in_use) {
-        in_use_     = in_use;
-        time_stamp_ = TimeStamp();
-    }
-    bool IsUsing() const { return in_use_; }
-    TimeStamp GetLastTimeUpdated() const { return time_stamp_; }
-
-private:
-    bool in_use_;
-    TimeStamp time_stamp_;
-    std::shared_ptr<DataManager> data_ptr_;
-};
-
 class DataMgrCache final : public DataManager {
 public:
     DataMgrCache(std::string mem_type) : DataManager() { SetMemType(mem_type); }

@@ -53,7 +53,7 @@ public:
         struct timeval tv;
         struct tm* ptm;
         size_t offset                      = 0;
-        static const char* log_level_str[] = {"DEBUG", "INFO", "WARN", "ERROR"};
+        static const char* log_level_str[] = {"DEBUG", "INFO ", "WARN ", "ERROR"};
 
         gettimeofday(&tv, NULL);
         ptm    = localtime(&tv.tv_sec);
