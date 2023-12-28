@@ -6,7 +6,7 @@
 
 #include <fstream>
 #include <gtest/gtest.h>
-
+#include <thread>
 class ManagerTest : public ::testing::Test {
 protected:
     void SetUp() override {
@@ -248,4 +248,23 @@ TEST_F(ManagerTest, DataManager) {
     EXPECT_TRUE(e_data == set_data);
     EXPECT_EQ(data_manager->GetSize(), 1000);
     EXPECT_EQ(data_manager->IsOwner(), false);
+}
+
+TEST_F(ManagerTest, DataManager_Memory_Pool_Malloc) {
+    auto manager = std::make_shared<base::DataMgrCache>(MEMTYPE_CPU);
+    EXPECT_TRUE(manager != nullptr);
+    auto data_ptr = manager->Malloc(1000);
+    EXPECT_TRUE(data_ptr != nullptr);
+    EXPECT_EQ(manager->GetSize(), 1000);
+}
+
+TEST_F(ManagerTest, DataManager_Memory_Pool) {
+    std::vector<int> bytes{10000, 1000, 20000, 30000, 20000, 30000, 10000};
+    for (size_t i = 0; i < bytes.size(); i++) {
+        auto manager = std::make_shared<base::DataMgrCache>(MEMTYPE_CPU);
+        EXPECT_TRUE(manager != nullptr);
+        auto data_ptr = manager->Malloc(bytes[i]);
+        EXPECT_TRUE(data_ptr != nullptr);
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+    }
 }
